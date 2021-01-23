@@ -1,0 +1,12 @@
+{
+  "compatibilityLevel": "JAVA_8",
+  "package": "com.rebane2001.livemessage.mixin",
+  "mixins": [],
+  "client": [
+    "GuiNewChatMixin"
+  ],
+  "server": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
