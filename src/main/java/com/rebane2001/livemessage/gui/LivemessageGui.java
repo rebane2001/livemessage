@@ -174,6 +174,8 @@ public class LivemessageGui extends GuiScreen {
         UUID uuid = LiveProfileCache.getLiveprofileFromName(username).uuid;
         boolean doHide = false;
         if (uuid != null) {
+            if (!chats.contains(uuid))
+                loadBuddies();
             if (!sentByMe) {
                 // Increase unread messages counter
                 unreadMessages.put(uuid, unreadMessages.getOrDefault(uuid, 0) + 1);
@@ -198,8 +200,6 @@ public class LivemessageGui extends GuiScreen {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            if (!chats.contains(uuid))
-                loadBuddies();
         }
         // Send message to open window
         for (LiveWindow liveWindow : liveWindows){
