@@ -11,7 +11,7 @@ Livemessage stores DMs locally and only sends messages through the Minecraft ser
 # Features
  - Persistent message history (saved to disk)
  - Notification toast and sounds (configurable)
- - Different goregous colors for every chat
+ - Different gorgeous colors for every chat
  - Separate chat windows for separate DMs
  - Dates and timestamps for messages
  - Buddy list
