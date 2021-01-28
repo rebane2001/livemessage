@@ -36,3 +36,11 @@ You can change the GUI size in the mod settings.
 
 ### Where are chats saved?
 `.minecraft/config/livemessage/messages/`
+
+### Does this mod hide DM messages from the vanilla chat?
+By default, it only hides chat DMs from blocked users. You can change the settings to hide DM messages from other users as well to make the vanilla chat cleaner. Livechat never hides any non-DM messages from vanilla chat
+
+### How do I get it to work with the Replay Mod?
+Open the Livemessage jar file up in 7-zip and delete the `org` folder.  
+Here's a [video tutorial](https://youtu.be/pMEsKAs1TOU).  
+Note that doing this might cause the mod to break upon uninstalling Replay Mod - in that case you should redownload the original livemessage jar.
