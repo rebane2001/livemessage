@@ -19,6 +19,8 @@ import java.util.regex.Pattern;
 public class LivemessageUtil {
 
     public static final Pattern fromPatterns[] = {
+            Pattern.compile("^From (\\w{3,16}): (.*)"),
+            Pattern.compile("^from (\\w{3,16}): (.*)"),
             Pattern.compile("^(\\w{3,16}) whispers: (.*)"),
             Pattern.compile("^\\[(\\w{3,16}) -> me\\] (.*)"),
             Pattern.compile("^(\\w{3,16}) whispers to you: (.*)")

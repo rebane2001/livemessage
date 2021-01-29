@@ -7,6 +7,7 @@ import com.rebane2001.livemessage.util.LiveProfileCache;
 import com.rebane2001.livemessage.util.LivemessageUtil;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.renderer.GlStateManager;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
@@ -99,6 +100,8 @@ public class LivemessageGui extends GuiScreen {
     }
 
     public void initGui() {
+        Keyboard.enableRepeatEvents(true);
+
         this.buttonList.clear();
 
         setScl();
@@ -107,6 +110,11 @@ public class LivemessageGui extends GuiScreen {
 
         if (liveWindows.isEmpty())
             liveWindows.add(new ManeWindow());
+    }
+
+    @Override
+    public void onGuiClosed() {
+        Keyboard.enableRepeatEvents(false);
     }
 
     // Safe chatwindow adding
