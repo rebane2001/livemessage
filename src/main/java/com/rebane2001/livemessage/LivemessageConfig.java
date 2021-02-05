@@ -63,6 +63,17 @@ public class LivemessageConfig {
         public int guiScale = 1;
     }
 
+
+    @Config.Comment("extra settings")
+    @Config.Name("extra settings")
+    public static final ExtraSettings extraSettings = new ExtraSettings();
+
+    public static class ExtraSettings {
+        @Config.Comment("Opens Livemessage GUI when shift right clicking another player")
+        @Config.Name("shift right click")
+        public boolean shiftRightClick = true;
+    }
+
     @Mod.EventBusSubscriber
     private static class EventHandler {
 

@@ -117,6 +117,15 @@ public class LivemessageGui extends GuiScreen {
         Keyboard.enableRepeatEvents(false);
     }
 
+    public static void selectBuddy(final UUID uuid) {
+        // TODO this is a stupid way to do this somehow. Idk how to do it better :(
+        liveWindows.stream()
+                .filter(ManeWindow.class::isInstance)
+                .map(ManeWindow.class::cast)
+                .findFirst()
+                .ifPresent(mane -> mane.selectBuddy(uuid)); // should only be in there once
+    }
+
     // Safe chatwindow adding
     public static void addChatWindow(ChatWindow chatWindow) {
         if (chatWindow.valid) {
