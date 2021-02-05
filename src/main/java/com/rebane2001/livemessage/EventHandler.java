@@ -36,7 +36,7 @@ public class EventHandler {
 
 
     public static boolean handleMouseClick(final EntityPlayerSP player, final RayTraceResult objectMouseOver) {
-        if(!LivemessageConfig.extraSettings.shiftRightClick) {
+        if(!LivemessageConfig.extraSettings.sneakRightClick) {
             return false;
         }
         if(player == null) {

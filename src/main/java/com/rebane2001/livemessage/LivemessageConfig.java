@@ -69,9 +69,9 @@ public class LivemessageConfig {
     public static final ExtraSettings extraSettings = new ExtraSettings();
 
     public static class ExtraSettings {
-        @Config.Comment("Opens Livemessage GUI when shift right clicking another player")
-        @Config.Name("shift right click")
-        public boolean shiftRightClick = true;
+        @Config.Comment("Opens Livemessage GUI when you sneak and right click another player")
+        @Config.Name("sneak right click")
+        public boolean sneakRightClick = true;
     }
 
     @Mod.EventBusSubscriber
