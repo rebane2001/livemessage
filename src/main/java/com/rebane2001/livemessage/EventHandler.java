@@ -1,9 +1,6 @@
 package com.rebane2001.livemessage;
 
-import com.rebane2001.livemessage.gui.ChatWindow;
 import com.rebane2001.livemessage.gui.LivemessageGui;
-import com.rebane2001.livemessage.gui.ManeWindow;
-import com.rebane2001.livemessage.util.LiveProfileCache;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.client.entity.EntityPlayerSP;
