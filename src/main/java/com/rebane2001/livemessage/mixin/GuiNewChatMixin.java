@@ -20,7 +20,7 @@ public abstract class GuiNewChatMixin extends Gui {
 
     @Inject(method = "printChatMessageWithOptionalDeletion", at = @At(value = "HEAD"), cancellable = true)
     public void printChatMessageWithOptionalDeletion(ITextComponent chatComponent, int chatLineId, CallbackInfo ci) {
-        for (Pattern fromPattern : LivemessageUtil.fromPatterns) {
+        for (Pattern fromPattern : LivemessageUtil.FROM_PATTERNS) {
             Matcher matcher = fromPattern.matcher(chatComponent.getUnformattedText());
             while (matcher.find()) {
                 System.out.println("[Livemessage] New message from " + matcher.group(1) + " < " + matcher.group(2));
@@ -29,7 +29,7 @@ public abstract class GuiNewChatMixin extends Gui {
                 return;
             }
         }
-        for (Pattern toPattern : LivemessageUtil.toPatterns) {
+        for (Pattern toPattern : LivemessageUtil.TO_PATTERNS) {
             Matcher matcher = toPattern.matcher(chatComponent.getUnformattedText());
             while (matcher.find()) {
                 System.out.println("[Livemessage] Message sent to " + matcher.group(1) + " > " + matcher.group(2));

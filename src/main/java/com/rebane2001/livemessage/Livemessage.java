@@ -1,15 +1,15 @@
 package com.rebane2001.livemessage;
 
 import com.rebane2001.livemessage.gui.*;
+import com.rebane2001.livemessage.util.LivemessageUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 
-import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 
 @Mod(modid = Livemessage.MOD_ID)
@@ -32,6 +32,7 @@ public class Livemessage {
         initDirs();
         LivemessageGui.loadBuddies();
         ManeWindow.generateBuddylist();
+        LivemessageUtil.loadPatterns();
     }
 
     /**
@@ -48,5 +49,19 @@ public class Livemessage {
         directory = new File(String.valueOf(modFolder.resolve("settings")));
         if (!directory.exists())
             directory.mkdir();
+        directory = new File(String.valueOf(modFolder.resolve("patterns")));
+        if (!directory.exists())
+            directory.mkdir();
+        // Internal patterns files
+        try {
+            directory = new File(String.valueOf(modFolder.resolve("patterns/toPatterns.jsonl")));
+            if (!directory.exists())
+                directory.createNewFile();
+            directory = new File(String.valueOf(modFolder.resolve("patterns/fromPatterns.jsonl")));
+            if (!directory.exists())
+                directory.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

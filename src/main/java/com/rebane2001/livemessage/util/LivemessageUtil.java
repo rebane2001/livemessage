@@ -7,37 +7,76 @@ import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import com.rebane2001.livemessage.Livemessage;
+import com.rebane2001.livemessage.gui.ChatWindow;
 import net.minecraft.client.Minecraft;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
 import java.net.URL;
-import java.util.Scanner;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class LivemessageUtil {
 
-    public static final Pattern fromPatterns[] = {
-            Pattern.compile("^From (\\w{3,16}): (.*)"),
-            Pattern.compile("^from (\\w{3,16}): (.*)"),
-            Pattern.compile("^(\\w{3,16}) whispers: (.*)"),
-            Pattern.compile("^\\[(\\w{3,16}) -> me\\] (.*)"),
-            Pattern.compile("^(\\w{3,16}) whispers to you: (.*)")
-    };
+    public static final List<Pattern> FROM_PATTERNS = new ArrayList<>(
+            Arrays.asList(
+                    Pattern.compile("^From (\\w{3,16}): (.*)"),
+                    Pattern.compile("^from (\\w{3,16}): (.*)"),
+                    Pattern.compile("^(\\w{3,16}) whispers: (.*)"),
+                    Pattern.compile("^\\[(\\w{3,16}) -> me\\] (.*)"),
+                    Pattern.compile("^(\\w{3,16}) whispers to you: (.*)")
+            )
+    );
 
-    public static final Pattern toPatterns[] = {
-            Pattern.compile("^To (\\w{3,16}): (.*)"),
-            Pattern.compile("^to (\\w{3,16}): (.*)"),
-            Pattern.compile("^\\[me -> (\\w{3,16})\\] (.*)"),
-            Pattern.compile("^You whisper to (\\w{3,16}): (.*)")
-
-    };
+    public static final List<Pattern> TO_PATTERNS = new ArrayList<>(
+            Arrays.asList(
+                    Pattern.compile("^To (\\w{3,16}): (.*)"),
+                    Pattern.compile("^to (\\w{3,16}): (.*)"),
+                    Pattern.compile("^\\[me -> (\\w{3,16})\\] (.*)"),
+                    Pattern.compile("^You whisper to (\\w{3,16}): (.*)")
+            )
+    );
 
     public static class ChatSettings{
         public boolean isFriend = false;
         public boolean isBlocked = false;
         public int customColor = 0;
+    }
+
+    /**
+     * Might not be the place for this method, but it works
+     */
+    public static void loadPatterns() {
+        BufferedReader reader;
+        try {
+            reader = new BufferedReader(new FileReader(
+                    String.valueOf(Livemessage.modFolder.resolve("patterns/toPatterns.jsonl"))));
+            String line = reader.readLine();
+            while (line != null) {
+                try {
+                    TO_PATTERNS.add(Pattern.compile(line));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                line = reader.readLine();
+            }
+            reader.close();
+
+            reader = new BufferedReader(new FileReader(
+                    String.valueOf(Livemessage.modFolder.resolve("patterns/fromPatterns.jsonl"))));
+            line = reader.readLine();
+            while (line != null) {
+                try {
+                    FROM_PATTERNS.add(Pattern.compile(line));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                line = reader.readLine();
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static ChatSettings getChatSettings(UUID uuid){
