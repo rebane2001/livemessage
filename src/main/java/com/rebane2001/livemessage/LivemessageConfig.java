@@ -51,16 +51,23 @@ public class LivemessageConfig {
         public boolean hideFromBlocked = true;
     }
 
-    @Config.Comment("Other settings")
-    @Config.Name("Other settings")
-    public static final OtherSettings otherSettings = new OtherSettings();
+    @Config.Comment("GUI settings")
+    @Config.Name("GUI settings")
+    public static final GuiSettings guiSettings = new GuiSettings();
 
-    public static class OtherSettings {
+    public static class GuiSettings {
         @Config.SlidingOption
         @Config.RangeInt(min = 1, max = 4)
         @Config.Comment("Scale of the Livemessage GUI")
         @Config.Name("GUI Scale")
         public int guiScale = 1;
+    }
+
+    @Config.Comment("Other settings")
+    @Config.Name("Other settings")
+    public static final OtherSettings otherSettings = new OtherSettings();
+
+    public static class OtherSettings {
         @Config.Comment("Opens Livemessage chat window when you sneak and right click another player")
         @Config.Name("Sneak-right-click")
         public boolean sneakRightClick = false;

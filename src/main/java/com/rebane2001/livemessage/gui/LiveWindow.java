@@ -270,7 +270,8 @@ public class LiveWindow {
             GlStateManager.translate(0, 150 * (1d - progress), 0);
             fb.bindFramebufferTexture();
             //TODO
-            Gui.drawModalRectWithCustomSizedTexture(0, mb.framebufferHeight/ LivemessageConfig.otherSettings.guiScale, 0, 0, mb.framebufferWidth/ LivemessageConfig.otherSettings.guiScale, -mb.framebufferHeight/ LivemessageConfig.otherSettings.guiScale, mb.framebufferWidth/ LivemessageConfig.otherSettings.guiScale, -mb.framebufferHeight/ LivemessageConfig.otherSettings.guiScale);
+            int guiScale = LivemessageConfig.guiSettings.guiScale;
+            Gui.drawModalRectWithCustomSizedTexture(0, mb.framebufferHeight/guiScale, 0, 0, mb.framebufferWidth/guiScale, -mb.framebufferHeight/guiScale, mb.framebufferWidth/guiScale, -mb.framebufferHeight/guiScale);
             fb.deleteFramebuffer();
             mb.bindFramebuffer(true);
             GlStateManager.popMatrix();
