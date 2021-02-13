@@ -76,11 +76,11 @@ processResources {
 }
 
 jar {
-    from(configurations.mixinNew.collect {
-        it.isDirectory() ? it : zipTree(it)
-    }) {
-        exclude "LICENSE.txt", "META-INF/MANIFSET.MF", "META-INF/maven/**", "META-INF/*.RSA", "META-INF/*.SF"
-    }
+    //from(configurations.mixinNew.collect {
+    //    it.isDirectory() ? it : zipTree(it)
+    //}) {
+    //    exclude "LICENSE.txt", "META-INF/MANIFSET.MF", "META-INF/maven/**", "META-INF/*.RSA", "META-INF/*.SF"
+    //}
 
     manifest {
         attributes "FMLCorePlugin": mod_core_plugin
@@ -92,26 +92,35 @@ jar {
     }
 }
 
-task mixin7(type: Jar) {
+task jarMixin7(type: Jar) {
     // referring to the output in this way
     // allows Gradle to infer task dependencies automatically
-    from sourceSets.main.output
+    //from sourceSets.main.output
+    from reobfJar
+
     from(configurations.mixinOld.collect {
         it.isDirectory() ? it : zipTree(it)
     }) {
         exclude "LICENSE.txt", "META-INF/MANIFSET.MF", "META-INF/maven/**", "META-INF/*.RSA", "META-INF/*.SF"
     }
 
-    manifest {
-        attributes "FMLCorePlugin": mod_core_plugin
-        attributes "FMLCorePluginContainsFMLMod": "true"
-        attributes "ForceLoadAsMod": "true"
-        attributes "TweakClass": "org.spongepowered.asm.launch.MixinTweaker"
-        attributes "TweakOrder": "0"
-        attributes "MixinConfigs": mod_mixin_configs.replace('${mod_id}', mod_id)
-    }
-
     baseName = mod_id + "-1.12.2-mixin7"
 }
 
-jar.dependsOn(mixin7)
+task jarMixin8(type: Jar) {
+    // referring to the output in this way
+    // allows Gradle to infer task dependencies automatically
+    //from sourceSets.main.output
+    from jar.source
+
+    from(configurations.mixinNew.collect {
+        it.isDirectory() ? it : zipTree(it)
+    }) {
+        exclude "LICENSE.txt", "META-INF/MANIFSET.MF", "META-INF/maven/**", "META-INF/*.RSA", "META-INF/*.SF"
+    }
+
+    baseName = mod_id + "-1.12.2-mixin8"
+}
+
+build.dependsOn jarMixin7
+build.dependsOn jarMixin8
