@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.rebane2001.livemessage.gui.GuiUtil.*;
+import static com.rebane2001.livemessage.gui.LivemessageGui.scl;
 
 public class LiveWindow {
     public static int titlebarHeight = 17;
@@ -190,18 +191,18 @@ public class LiveWindow {
 
     public void handleMouseDrag(){
         if (dragging || resizing){
-            final int mouseX = Mouse.getX();
-            final int mouseY = LivemessageGui.screenHeight - Mouse.getY();
+            final int mouseX = (int) (Mouse.getX() / LivemessageConfig.guiSettings.guiScale);
+            final int mouseY = (int) (LivemessageGui.screenHeight - (Mouse.getY() / LivemessageConfig.guiSettings.guiScale));
             if (dragging) {
                 x = Math.max(0, mouseX - dragX);
-                x -= x % LivemessageGui.scl;
+                x -= x % scl;
                 y = Math.max(0, mouseY - dragY);
-                y -= y % LivemessageGui.scl;
+                y -= y % scl;
             } else if (resizing) {
                 w = MathHelper.clamp(mouseX - dragX - x, minw, maxw);
-                w -= w % LivemessageGui.scl;
+                w -= w % scl;
                 h = MathHelper.clamp(mouseY - dragY - y, minh, maxh);
-                h -= h % LivemessageGui.scl;
+                h -= h % scl;
             }
         }
     }
@@ -269,9 +270,9 @@ public class LiveWindow {
             GlStateManager.translate(-(x + w / 2), -(y + h / 2), 0);
             GlStateManager.translate(0, 150 * (1d - progress), 0);
             fb.bindFramebufferTexture();
-            //TODO
-            int guiScale = LivemessageConfig.guiSettings.guiScale;
-            Gui.drawModalRectWithCustomSizedTexture(0, mb.framebufferHeight/guiScale, 0, 0, mb.framebufferWidth/guiScale, -mb.framebufferHeight/guiScale, mb.framebufferWidth/guiScale, -mb.framebufferHeight/guiScale);
+            double guiScale = LivemessageConfig.guiSettings.guiScale;
+            Gui.drawModalRectWithCustomSizedTexture(0, (int)(mb.framebufferHeight/guiScale), 0, 0, (int)(mb.framebufferWidth/guiScale), (int)(-mb.framebufferHeight/guiScale
+                    ), (int)(mb.framebufferWidth/guiScale), (int)(-mb.framebufferHeight/guiScale));
             fb.deleteFramebuffer();
             mb.bindFramebuffer(true);
             GlStateManager.popMatrix();

@@ -98,7 +98,7 @@ public class LivemessageGui extends GuiScreen {
 
     public void setScl() {
         final ScaledResolution scaledresolution = new ScaledResolution(this.mc);
-        scl = scaledresolution.getScaleFactor() / LivemessageConfig.guiSettings.guiScale;
+        scl = scaledresolution.getScaleFactor() / (float)LivemessageConfig.guiSettings.guiScale;
 
         screenHeight = (int) (scaledresolution.getScaledHeight_double() * scl);
         screenWidth = (int) (scaledresolution.getScaledWidth_double() * scl);
