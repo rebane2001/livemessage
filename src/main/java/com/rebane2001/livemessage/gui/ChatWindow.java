@@ -105,7 +105,6 @@ public class ChatWindow extends LiveWindow {
     public ChatWindow(LiveProfile liveProfile) {
         if (liveProfile == null) {
             System.out.println("[Livemessage] Tried to open an invalid chat window - offline mode?");
-            // but this could also happen when someone is banned? (LifeProfileCache#L160)
             valid = false;
             return;
         }

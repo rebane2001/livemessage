@@ -124,15 +124,11 @@ public class ManeWindow extends LiveWindow {
             int i = (int) Math.floor((mouseY - buddyListY - this.y - 3) / 12f) + listScrollPosition;
             if (i < buddyListEntries.size() && i >= 0) {
                 BuddyListEntry buddyListEntry = buddyListEntries.get(i);
-                selectBuddy(buddyListEntry.uuid);
+                LivemessageGui.openChatWindow(buddyListEntry.uuid);
             }
         }
 
         super.mouseClicked(mouseX, mouseY, mouseButton);
-    }
-
-    public void selectBuddy(final UUID uuid) {
-        LivemessageGui.openChatWindow(uuid);
     }
 
     public static class BuddyListEntry {
