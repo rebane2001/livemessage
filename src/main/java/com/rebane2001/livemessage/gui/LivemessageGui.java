@@ -201,7 +201,7 @@ public class LivemessageGui extends GuiScreen {
     }
 
     public static boolean newMessage(String username, String message, boolean sentByMe) {
-        UUID uuid = LiveProfileCache.getLiveprofileFromName(username).uuid;
+        final UUID uuid = LiveProfileCache.getLiveprofileFromName(username).uuid;
         boolean doHide = false;
         if (uuid != null) {
             if (!chats.contains(uuid))
@@ -215,6 +215,9 @@ public class LivemessageGui extends GuiScreen {
                 // If settings allow, play a notification sound
                 if ((!blocked.contains(uuid) || LivemessageConfig.notificationSettings.soundsFromBlocked) && ((friends.contains(uuid) && LivemessageConfig.notificationSettings.soundsFromFriends) || (!friends.contains(uuid) && chats.contains(uuid) && LivemessageConfig.notificationSettings.soundsFromChats)))
                     LiveHud.playNotificationSound();
+            } else {
+                if(LivemessageConfig.otherSettings.readOnReply)
+                    LivemessageGui.unreadMessages.put(uuid, 0);
             }
             // If settings define, hide DM messages from main chat
             if ((blocked.contains(uuid) && LivemessageConfig.hideSettings.hideFromBlocked) || (friends.contains(uuid) && LivemessageConfig.hideSettings.hideFromFriends) || (chats.contains(uuid) && LivemessageConfig.hideSettings.hideFromChats))

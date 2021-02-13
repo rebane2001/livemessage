@@ -62,8 +62,14 @@ public class LivemessageConfig {
         @Config.Name("GUI Scale")
         public int guiScale = 1;
         @Config.Comment("Opens Livemessage chat window when you sneak and right click another player")
-        @Config.Name("sneak right click")
+        @Config.Name("Sneak-right-click")
         public boolean sneakRightClick = false;
+        @Config.Comment("If you reply to a player, mark their messages as read in Livemessage")
+        @Config.Name("Mark read on reply")
+        public boolean readOnReply = true;
+        @Config.Comment("If you use a client with 'timestamp' feature for chat, this might fix compatibility problems")
+        @Config.Name("Timestamppatch (for client compatibility)")
+        public boolean timestampPatch = true;
     }
 
     @Mod.EventBusSubscriber
