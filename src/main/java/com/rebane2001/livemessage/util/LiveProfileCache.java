@@ -14,11 +14,14 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
 public class LiveProfileCache {
 
     public static Map<UUID, LiveProfile> cachedProfiles = new HashMap<>();
+    public static Map<UUID, LiveProfile> weakCachedProfiles = new HashMap<>();
     public static Map<String, UUID> cachedNames = new HashMap<>();
     public static Set<UUID> badUUIDs = new HashSet<>();
     public static Set<String> badNames = new HashSet<>();
@@ -102,6 +105,35 @@ public class LiveProfileCache {
         }
     }
 
+    public static void preloadProfiles(){
+        Set<UUID> savedUUIDs = new HashSet<>();
+        savedUUIDs.addAll(LivemessageGui.chats);
+        savedUUIDs.addAll(LivemessageGui.friends);
+        savedUUIDs.addAll(LivemessageGui.blocked);
+
+        ExecutorService executor = Executors.newFixedThreadPool(8);
+        for (UUID uuid : savedUUIDs) {
+            executor.submit(() -> getLiveprofileFromUUID(uuid,false));
+        }
+
+
+        /*
+        ExecutorService fixedPool = Executors.newFixedThreadPool(8);
+
+
+        Runnable runnableTask = (UUID z) -> {
+            try {
+                System.out.println("Checking XXX");
+                LiveProfile x = getLiveprofileFromUUID(new UUID(123 ,123),false);
+                System.out.println("Got " + x.username);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        };
+
+        fixedPool.execute(runnableTask);*/
+    }
+
     public static LiveProfile forceloadNameHistory(LiveProfile liveProfile) {
         if (cachedProfiles.get(liveProfile.uuid).pastNames != null)
             return cachedProfiles.get(liveProfile.uuid);
@@ -140,9 +172,12 @@ public class LiveProfileCache {
         return null;
     }
 
-    public static LiveProfile getLiveprofileFromUUID(UUID uuid) {
+    public static LiveProfile getLiveprofileFromUUID(UUID uuid, boolean weak) {
+        System.out.println("Looking up " + uuid.toString());
         if (cachedProfiles.containsKey(uuid))
             return cachedProfiles.get(uuid);
+        if (weakCachedProfiles.containsKey(uuid) && weak)
+            return weakCachedProfiles.get(uuid);
         if (badUUIDs.contains(uuid))
             return null;
         LiveProfile liveProfile = new LiveProfile();
@@ -156,6 +191,7 @@ public class LiveProfileCache {
         }
         cachedProfiles.put(uuid, liveProfile);
         cachedNames.put(liveProfile.username.toLowerCase(Locale.ROOT), uuid);
+        System.out.println("Got " + liveProfile.username);
         return liveProfile;
     }
 
@@ -172,7 +208,7 @@ public class LiveProfileCache {
             uuid = pollUUID(username);
         if (uuid == null)
             return banName(username);
-        return getLiveprofileFromUUID(uuid);
+        return getLiveprofileFromUUID(uuid, false);
     }
 
 }

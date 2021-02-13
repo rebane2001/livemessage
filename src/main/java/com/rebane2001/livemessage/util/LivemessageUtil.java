@@ -50,7 +50,7 @@ public class LivemessageUtil {
         BufferedReader reader;
         try {
             reader = new BufferedReader(new FileReader(
-                    String.valueOf(Livemessage.modFolder.resolve("patterns/toPatterns.jsonl"))));
+                    String.valueOf(Livemessage.modFolder.resolve("patterns/toPatterns.txt"))));
             String line = reader.readLine();
             while (line != null) {
                 try {
@@ -63,7 +63,7 @@ public class LivemessageUtil {
             reader.close();
 
             reader = new BufferedReader(new FileReader(
-                    String.valueOf(Livemessage.modFolder.resolve("patterns/fromPatterns.jsonl"))));
+                    String.valueOf(Livemessage.modFolder.resolve("patterns/fromPatterns.txt"))));
             line = reader.readLine();
             while (line != null) {
                 try {

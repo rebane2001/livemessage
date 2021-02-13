@@ -213,7 +213,7 @@ public class ManeWindow extends LiveWindow {
         for (int mode = 0; mode < 3; ++mode) {
             for (int i = 0; i < LivemessageGui.friends.size(); ++i) {
                 UUID uuid = LivemessageGui.friends.get(i);
-                LiveProfile liveProfile = LiveProfileCache.getLiveprofileFromUUID(uuid);
+                LiveProfile liveProfile = LiveProfileCache.getLiveprofileFromUUID(uuid, true);
                 if (liveProfile == null)
                     continue;
                 if (LivemessageGui.blocked.contains(uuid))
@@ -231,7 +231,7 @@ public class ManeWindow extends LiveWindow {
         for (int mode = 0; mode < 3; ++mode) {
             for (int i = 0; i < LivemessageGui.chats.size(); ++i) {
                 UUID uuid = LivemessageGui.chats.get(i);
-                LiveProfile liveProfile = LiveProfileCache.getLiveprofileFromUUID(uuid);
+                LiveProfile liveProfile = LiveProfileCache.getLiveprofileFromUUID(uuid, true);
                 if (liveProfile == null)
                     continue;
                 if (LivemessageGui.friends.contains(uuid) || LivemessageGui.blocked.contains(uuid))
@@ -261,7 +261,7 @@ public class ManeWindow extends LiveWindow {
         for (int mode = 0; mode < 3; ++mode) {
             for (int i = 0; i < LivemessageGui.blocked.size(); ++i) {
                 UUID uuid = LivemessageGui.blocked.get(i);
-                LiveProfile liveProfile = LiveProfileCache.getLiveprofileFromUUID(uuid);
+                LiveProfile liveProfile = LiveProfileCache.getLiveprofileFromUUID(uuid, true);
                 if (liveProfile == null)
                     continue;
                 if (!rightMode(mode, uuid))

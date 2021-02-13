@@ -38,7 +38,7 @@ public class EventHandler {
         if (!LivemessageConfig.otherSettings.sneakRightClick)
             return false;
 
-        if (player == null && objectMouseOver == null)
+        if (player == null || objectMouseOver == null)
             return false;
 
         // only do it when sneaking

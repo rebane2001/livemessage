@@ -98,7 +98,7 @@ public class ChatWindow extends LiveWindow {
      * Initialize ChatWindows with either the UUID or username of an user.
      */
     ChatWindow(UUID uuid) {
-        this(LiveProfileCache.getLiveprofileFromUUID(uuid));
+        this(LiveProfileCache.getLiveprofileFromUUID(uuid, false));
     }
 
     ChatWindow(String username) {

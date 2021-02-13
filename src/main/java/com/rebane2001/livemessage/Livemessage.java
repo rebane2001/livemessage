@@ -1,6 +1,7 @@
 package com.rebane2001.livemessage;
 
 import com.rebane2001.livemessage.gui.*;
+import com.rebane2001.livemessage.util.LiveProfileCache;
 import com.rebane2001.livemessage.util.LivemessageUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.Mod;
@@ -31,7 +32,7 @@ public class Livemessage {
         NetworkRegistry.INSTANCE.registerGuiHandler(this, new GuiHandler());
         initDirs();
         LivemessageGui.loadBuddies();
-        ManeWindow.generateBuddylist();
+        LiveProfileCache.preloadProfiles();
         LivemessageUtil.loadPatterns();
     }
 

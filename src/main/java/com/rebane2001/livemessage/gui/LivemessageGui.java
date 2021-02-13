@@ -207,6 +207,17 @@ public class LivemessageGui extends GuiScreen {
         final UUID uuid = LiveProfileCache.getLiveprofileFromName(username).uuid;
         boolean doHide = false;
         if (uuid != null) {
+            // Write message to chat history jsonl
+            try {
+                Gson gson = new Gson();
+                FileWriter fw = new FileWriter(String.valueOf(Livemessage.modFolder.resolve("messages/" + uuid.toString() + ".jsonl")), true);
+                BufferedWriter bw = new BufferedWriter(fw);
+                bw.write(gson.toJson(new ChatWindow.ChatMessage(message, sentByMe, System.currentTimeMillis(), Minecraft.getMinecraft().player.getUniqueID())));
+                bw.newLine();
+                bw.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             if (!chats.contains(uuid))
                 loadBuddies();
             if (!sentByMe) {
@@ -225,17 +236,6 @@ public class LivemessageGui extends GuiScreen {
             // If settings define, hide DM messages from main chat
             if ((blocked.contains(uuid) && LivemessageConfig.hideSettings.hideFromBlocked) || (friends.contains(uuid) && LivemessageConfig.hideSettings.hideFromFriends) || (chats.contains(uuid) && LivemessageConfig.hideSettings.hideFromChats))
                 doHide = true;
-            // Write message to chat history jsonl
-            try {
-                Gson gson = new Gson();
-                FileWriter fw = new FileWriter(String.valueOf(Livemessage.modFolder.resolve("messages/" + uuid.toString() + ".jsonl")), true);
-                BufferedWriter bw = new BufferedWriter(fw);
-                bw.write(gson.toJson(new ChatWindow.ChatMessage(message, sentByMe, System.currentTimeMillis(), Minecraft.getMinecraft().player.getUniqueID())));
-                bw.newLine();
-                bw.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
         // Send message to open window
         for (LiveWindow liveWindow : liveWindows) {
