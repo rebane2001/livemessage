@@ -46,6 +46,3 @@ Your regex should look something like this: `^From (\w{3,16}): (.*)` where the f
 
 ### Does this mod hide DM messages from the vanilla chat?
 By default, it only hides chat DMs from blocked users. You can change the settings to hide DM messages from other users as well to make the vanilla chat cleaner. Livechat never hides any non-DM messages from vanilla chat
-
-### How do I get it to work with the Replay Mod/Future client/other mod?
-The most likely issue is the Mixin version. For this reason, I offer two downloads - one for Mixin 0.8 and one for 0.7.11. Use the former for Replay Mod and latter for Future client.
