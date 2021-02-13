@@ -5,6 +5,7 @@ import com.rebane2001.livemessage.Livemessage;
 import com.rebane2001.livemessage.LivemessageConfig;
 import com.rebane2001.livemessage.util.LiveProfileCache;
 import com.rebane2001.livemessage.util.LivemessageUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.input.Keyboard;
@@ -229,7 +230,7 @@ public class LivemessageGui extends GuiScreen {
                 Gson gson = new Gson();
                 FileWriter fw = new FileWriter(String.valueOf(Livemessage.modFolder.resolve("messages/" + uuid.toString() + ".jsonl")), true);
                 BufferedWriter bw = new BufferedWriter(fw);
-                bw.write(gson.toJson(new ChatWindow.ChatMessage(message, sentByMe, System.currentTimeMillis())));
+                bw.write(gson.toJson(new ChatWindow.ChatMessage(message, sentByMe, System.currentTimeMillis(), Minecraft.getMinecraft().player.getUniqueID())));
                 bw.newLine();
                 bw.close();
             } catch (Exception e) {

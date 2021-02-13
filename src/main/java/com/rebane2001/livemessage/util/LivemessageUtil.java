@@ -89,7 +89,8 @@ public class LivemessageUtil {
             );
             return gson.fromJson(reader, ChatSettings.class);
         } catch (Exception e) {
-            e.printStackTrace();
+            //TODO: Add better error handling
+            //e.printStackTrace();
         }
         return new ChatSettings();
     }

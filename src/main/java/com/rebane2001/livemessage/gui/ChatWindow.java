@@ -78,11 +78,17 @@ public class ChatWindow extends LiveWindow {
         public String message;
         public boolean sentByMe;
         public long timestamp;
+        public UUID myUUID;
 
         ChatMessage(String message, boolean sentByMe, long timestamp) {
             this.message = message;
             this.sentByMe = sentByMe;
             this.timestamp = timestamp;
+        }
+
+        ChatMessage(String message, boolean sentByMe, long timestamp, UUID myUUID) {
+            this(message, sentByMe, timestamp);
+            this.myUUID = myUUID;
         }
     }
 
@@ -205,7 +211,8 @@ public class ChatWindow extends LiveWindow {
             }
             reader.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            //TODO: Add better error handling
+            //e.printStackTrace();
         }
     }
 
