@@ -21,6 +21,7 @@ import org.lwjgl.input.Keyboard;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import static com.rebane2001.livemessage.gui.GuiUtil.*;
@@ -189,7 +190,7 @@ public class ManeWindow extends LiveWindow {
 
     private static boolean searchFilter(String username){
         try {
-            return searchField.getText().trim().length() > 0 && !username.contains(searchField.getText().trim());
+            return searchField.getText().trim().length() > 0 && !username.toLowerCase(Locale.ROOT).contains(searchField.getText().trim().toLowerCase(Locale.ROOT));
         } catch (Exception e){
             return false;
         }

@@ -173,7 +173,6 @@ public class LiveProfileCache {
     }
 
     public static LiveProfile getLiveprofileFromUUID(UUID uuid, boolean weak) {
-        System.out.println("Looking up " + uuid.toString());
         if (cachedProfiles.containsKey(uuid))
             return cachedProfiles.get(uuid);
         if (weakCachedProfiles.containsKey(uuid) && weak)
@@ -191,7 +190,6 @@ public class LiveProfileCache {
         }
         cachedProfiles.put(uuid, liveProfile);
         cachedNames.put(liveProfile.username.toLowerCase(Locale.ROOT), uuid);
-        System.out.println("Got " + liveProfile.username);
         return liveProfile;
     }
 
