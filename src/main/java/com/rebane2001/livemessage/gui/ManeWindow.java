@@ -132,24 +132,7 @@ public class ManeWindow extends LiveWindow {
     }
 
     public void selectBuddy(final UUID uuid) {
-        if (uuid != null) {
-            for (LiveWindow liveWindow : LivemessageGui.liveWindows) {
-                if (!(liveWindow instanceof ChatWindow)){
-                    continue;
-            }
-                final ChatWindow chatWindow = (ChatWindow) liveWindow;
-                if (chatWindow.liveProfile.uuid.equals(uuid)){
-                    this.deactivateWindow();
-                    chatWindow.activateWindow();
-                    LivemessageGui.liveWindows.removeIf(it -> it == chatWindow);
-                    LivemessageGui.liveWindows.add(chatWindow);
-                    break;
-                }
-            }
-            if (active) {
-                LivemessageGui.addChatWindow(new ChatWindow(uuid));
-            }
-        }
+        LivemessageGui.openChatWindow(uuid);
     }
 
     public static class BuddyListEntry {

@@ -93,7 +93,7 @@ public class LivemessageGui extends GuiScreen {
 
     public void setScl(){
         final ScaledResolution scaledresolution = new ScaledResolution(this.mc);
-        scl = scaledresolution.getScaleFactor() / LivemessageConfig.guiSettings.guiScale;
+        scl = scaledresolution.getScaleFactor() / LivemessageConfig.otherSettings.guiScale;
 
         screenHeight = (int) (scaledresolution.getScaledHeight_double()*scl);
         screenWidth = (int) (scaledresolution.getScaledWidth_double()*scl);
@@ -117,17 +117,30 @@ public class LivemessageGui extends GuiScreen {
         Keyboard.enableRepeatEvents(false);
     }
 
-    public static void selectBuddy(final UUID uuid) {
-        // TODO this is a stupid way to do this somehow. Idk how to do it better :(
-        liveWindows.stream()
-                .filter(ManeWindow.class::isInstance)
-                .map(ManeWindow.class::cast)
-                .findFirst()
-                .ifPresent(mane -> mane.selectBuddy(uuid)); // should only be in there once
+    // Use this to open a new window or highlight existing one
+    public static void openChatWindow(final UUID uuid) {
+        if (uuid == null)
+            return;
+        liveWindows.get(liveWindows.size()-1).deactivateWindow();
+        // Look for existing window
+        for (LiveWindow liveWindow : LivemessageGui.liveWindows) {
+            if (!(liveWindow instanceof ChatWindow)){
+                continue;
+            }
+            final ChatWindow chatWindow = (ChatWindow) liveWindow;
+            if (chatWindow.liveProfile.uuid.equals(uuid)){
+                chatWindow.activateWindow();
+                LivemessageGui.liveWindows.removeIf(it -> it == chatWindow);
+                LivemessageGui.liveWindows.add(chatWindow);
+                return;
+            }
+        }
+        // If existing window didn't exist, add a new one
+        LivemessageGui.addChatWindow(new ChatWindow(uuid));
     }
 
     // Safe chatwindow adding
-    public static void addChatWindow(ChatWindow chatWindow) {
+    private static void addChatWindow(ChatWindow chatWindow) {
         if (chatWindow.valid) {
             liveWindows.add(chatWindow);
         } else {

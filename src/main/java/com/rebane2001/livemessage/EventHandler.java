@@ -17,6 +17,8 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 
+import java.util.UUID;
+
 import static net.minecraftforge.client.settings.KeyConflictContext.IN_GAME;
 
 @Mod.EventBusSubscriber(modid = Livemessage.MOD_ID)
@@ -25,48 +27,40 @@ public class EventHandler {
     public static KeyBinding[] keyBindings;
 
     @SideOnly(Side.CLIENT)
-    @SubscribeEvent(priority= EventPriority.NORMAL, receiveCanceled=true)
-    public static void onEvent(InputEvent.KeyInputEvent event)
-    {
-        if (keyBindings[0].isPressed()) {
+    @SubscribeEvent(priority = EventPriority.NORMAL, receiveCanceled = true)
+    public static void onEvent(InputEvent.KeyInputEvent event) {
+        if (keyBindings[0].isPressed())
             openGui(Minecraft.getMinecraft().player);
-        }
-
     }
 
-
+    // for the sneakRightClick feature
     public static boolean handleMouseClick(final EntityPlayerSP player, final RayTraceResult objectMouseOver) {
-        if(!LivemessageConfig.extraSettings.sneakRightClick) {
+        if (!LivemessageConfig.otherSettings.sneakRightClick)
             return false;
-        }
-        if(player == null) {
-            return false; // wont happen but whatever
-        }
-        if(objectMouseOver == null)  {
+
+        if (player == null && objectMouseOver == null)
             return false;
-        }
 
         // only do it when sneaking
-        if(!player.isSneaking()) {
+        if (!player.isSneaking())
             return false;
-        }
+
         // only when looking at an entity
-        if(objectMouseOver.typeOfHit != RayTraceResult.Type.ENTITY) {
+        if (objectMouseOver.typeOfHit != RayTraceResult.Type.ENTITY)
             return false;
-        }
-        // also wont happen because it wouldnt have been an entity hit somehow
-        if(objectMouseOver.entityHit == null) {
-            return false;
-        }
 
-        if(!(objectMouseOver.entityHit instanceof EntityOtherPlayerMP)) {
+        if (!(objectMouseOver.entityHit instanceof EntityOtherPlayerMP))
             return false;
-        }
 
-        // TODO cancel in advance if the player you right clicked is banned? or bypass then?
+        // set target player UUID
+        UUID targetUUID = ((EntityPlayer) objectMouseOver.entityHit).getGameProfile().getId();
+
+        // cancel if the player you right clicked is blocked
+        if (LivemessageGui.blocked.contains(targetUUID))
+            return false;
 
         openGui(player);
-        LivemessageGui.selectBuddy(((EntityPlayer) objectMouseOver.entityHit).getGameProfile().getId());
+        LivemessageGui.openChatWindow(targetUUID);
         return true;
     }
 
@@ -74,13 +68,12 @@ public class EventHandler {
         player.openGui(Livemessage.instance, 0, Minecraft.getMinecraft().world, 0, 0, 0);
     }
 
-    public static void initKeys(){
+    public static void initKeys() {
         keyBindings = new KeyBinding[1];
 
         keyBindings[0] = new KeyBinding("Open Livemessage GUI", IN_GAME, KeyModifier.CONTROL, Keyboard.KEY_T, "Livemessage");
 
-        for (int i = 0; i < keyBindings.length; ++i)
-        {
+        for (int i = 0; i < keyBindings.length; ++i) {
             ClientRegistry.registerKeyBinding(keyBindings[i]);
         }
     }

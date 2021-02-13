@@ -2,10 +2,10 @@
   "compatibilityLevel": "JAVA_8",
   "package": "com.rebane2001.livemessage.mixin",
   "mixins": [
-    "MinecraftMixin"
   ],
   "client": [
-    "GuiNewChatMixin"
+    "GuiNewChatMixin",
+    "MinecraftMixin"
   ],
   "server": [],
   "injectors": {

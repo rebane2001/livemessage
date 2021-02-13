@@ -13,16 +13,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Minecraft.class)
 public abstract class MinecraftMixin {
 
-
     @Shadow public EntityPlayerSP player;
-
     @Shadow public RayTraceResult objectMouseOver;
 
+    // for the sneakRightClick feature
     @Inject(method = "rightClickMouse", at = @At(value = "HEAD"), cancellable = true)
     public void rightClickMouse(final CallbackInfo callbackInfo) {
-        if(EventHandler.handleMouseClick(player, objectMouseOver)) {
+        if(EventHandler.handleMouseClick(player, objectMouseOver))
             callbackInfo.cancel();
-        }
     }
 
 }
