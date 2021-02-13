@@ -124,26 +124,32 @@ public class ManeWindow extends LiveWindow {
             int i = (int) Math.floor((mouseY - buddyListY - this.y - 3) / 12f) + listScrollPosition;
             if (i < buddyListEntries.size() && i >= 0) {
                 BuddyListEntry buddyListEntry = buddyListEntries.get(i);
-                if (buddyListEntry.uuid != null) {
-                    for (LiveWindow liveWindow : LivemessageGui.liveWindows){
-                        if (!(liveWindow instanceof ChatWindow))
-                            continue;
-                        ChatWindow chatWindow = (ChatWindow) liveWindow;
-                        if (chatWindow.liveProfile.uuid.equals(buddyListEntry.uuid)){
-                            this.deactivateWindow();
-                            chatWindow.activateWindow();
-                            LivemessageGui.liveWindows.removeIf(it -> it == chatWindow);
-                            LivemessageGui.liveWindows.add(chatWindow);
-                            break;
-                        }
-                    }
-                    if (active)
-                        LivemessageGui.addChatWindow(new ChatWindow(buddyListEntry.uuid));
-                }
+                selectBuddy(buddyListEntry.uuid);
             }
         }
 
         super.mouseClicked(mouseX, mouseY, mouseButton);
+    }
+
+    public void selectBuddy(final UUID uuid) {
+        if (uuid != null) {
+            for (LiveWindow liveWindow : LivemessageGui.liveWindows) {
+                if (!(liveWindow instanceof ChatWindow)){
+                    continue;
+            }
+                final ChatWindow chatWindow = (ChatWindow) liveWindow;
+                if (chatWindow.liveProfile.uuid.equals(uuid)){
+                    this.deactivateWindow();
+                    chatWindow.activateWindow();
+                    LivemessageGui.liveWindows.removeIf(it -> it == chatWindow);
+                    LivemessageGui.liveWindows.add(chatWindow);
+                    break;
+                }
+            }
+            if (active) {
+                LivemessageGui.addChatWindow(new ChatWindow(uuid));
+            }
+        }
     }
 
     public static class BuddyListEntry {

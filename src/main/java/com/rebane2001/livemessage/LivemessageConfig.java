@@ -63,6 +63,17 @@ public class LivemessageConfig {
         public int guiScale = 1;
     }
 
+
+    @Config.Comment("extra settings")
+    @Config.Name("extra settings")
+    public static final ExtraSettings extraSettings = new ExtraSettings();
+
+    public static class ExtraSettings {
+        @Config.Comment("Opens Livemessage GUI when you sneak and right click another player")
+        @Config.Name("sneak right click")
+        public boolean sneakRightClick = true;
+    }
+
     @Mod.EventBusSubscriber
     private static class EventHandler {
 
