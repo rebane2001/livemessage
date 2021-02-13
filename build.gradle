@@ -14,7 +14,7 @@ apply plugin: 'org.spongepowered.mixin'
 
 version = mod_version
 group = mod_group
-archivesBaseName = mod_id
+archivesBaseName = mod_id + "-1.12.2-mixin8"
 
 sourceCompatibility = targetCompatibility = '1.8'
 compileJava {
@@ -33,12 +33,25 @@ minecraft {
     serverRunArgs += "--mixin ${resolved_core_config}"
 }
 
+configurations {
+    mixinOld
+    mixinNew
+
+    provided.extendsFrom mixinOld
+    provided.extendsFrom mixinNew
+}
+
 repositories {
     maven { url = "https://repo.spongepowered.org/maven" }
 }
 
 dependencies {
-    provided('org.spongepowered:mixin:0.8-SNAPSHOT') {
+    mixinOld('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
+        exclude module: 'guava'
+        exclude module: 'commons-io'
+        exclude module: 'gson'
+    }
+    mixinNew('org.spongepowered:mixin:0.8-SNAPSHOT') {
         exclude module: 'guava'
         exclude module: 'commons-io'
         exclude module: 'gson'
@@ -63,7 +76,7 @@ processResources {
 }
 
 jar {
-    from(configurations.provided.collect {
+    from(configurations.mixinNew.collect {
         it.isDirectory() ? it : zipTree(it)
     }) {
         exclude "LICENSE.txt", "META-INF/MANIFSET.MF", "META-INF/maven/**", "META-INF/*.RSA", "META-INF/*.SF"
@@ -78,3 +91,27 @@ jar {
         attributes "MixinConfigs": mod_mixin_configs.replace('${mod_id}', mod_id)
     }
 }
+
+task mixin7(type: Jar) {
+    // referring to the output in this way
+    // allows Gradle to infer task dependencies automatically
+    from sourceSets.main.output
+    from(configurations.mixinOld.collect {
+        it.isDirectory() ? it : zipTree(it)
+    }) {
+        exclude "LICENSE.txt", "META-INF/MANIFSET.MF", "META-INF/maven/**", "META-INF/*.RSA", "META-INF/*.SF"
+    }
+
+    manifest {
+        attributes "FMLCorePlugin": mod_core_plugin
+        attributes "FMLCorePluginContainsFMLMod": "true"
+        attributes "ForceLoadAsMod": "true"
+        attributes "TweakClass": "org.spongepowered.asm.launch.MixinTweaker"
+        attributes "TweakOrder": "0"
+        attributes "MixinConfigs": mod_mixin_configs.replace('${mod_id}', mod_id)
+    }
+
+    baseName = mod_id + "-1.12.2-mixin7"
+}
+
+jar.dependsOn(mixin7)
