@@ -1,6 +1,8 @@
 {
   "compatibilityLevel": "JAVA_8",
   "package": "com.rebane2001.livemessage.mixin",
+  "refmap": "mixins.livemessage.refmap.json",
+  "target": "@env(DEFAULT)",
   "mixins": [
   ],
   "client": [
