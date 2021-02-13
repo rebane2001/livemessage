@@ -54,12 +54,12 @@ public class Livemessage {
             directory.mkdir();
         // Internal patterns files
         try {
-            directory = new File(String.valueOf(modFolder.resolve("patterns/toPatterns.jsonl")));
-            if (!directory.exists())
-                directory.createNewFile();
-            directory = new File(String.valueOf(modFolder.resolve("patterns/fromPatterns.jsonl")));
-            if (!directory.exists())
-                directory.createNewFile();
+            File patternFile = new File(String.valueOf(modFolder.resolve("patterns/toPatterns.txt")));
+            if (!patternFile.exists())
+                patternFile.createNewFile();
+            patternFile = new File(String.valueOf(modFolder.resolve("patterns/fromPatterns.txt")));
+            if (!patternFile.exists())
+                patternFile.createNewFile();
         } catch (IOException e) {
             e.printStackTrace();
         }
