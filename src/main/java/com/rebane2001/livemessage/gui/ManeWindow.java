@@ -9,6 +9,7 @@ import com.rebane2001.livemessage.util.LiveSkinUtil;
 import com.rebane2001.livemessage.util.LivemessageUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.client.renderer.GlStateManager;
@@ -38,11 +39,13 @@ public class ManeWindow extends LiveWindow {
     int listScrollPosition = 0;
     boolean scrolling = false;
 
+    protected static GuiTextField searchField;
+
     public static List<BuddyListEntry> buddyListEntries = new ArrayList<>();
 
     final int buddyListX = 5;
     final int buddyListY = titlebarHeight + 44;
-    final int footer = 10;
+    final int footer = 13;
 
     ManeWindow() {
         mc = Minecraft.getMinecraft();
@@ -51,6 +54,20 @@ public class ManeWindow extends LiveWindow {
         liveProfile.uuid = Minecraft.getMinecraft().player.getUniqueID();
         liveSkinUtil = new LiveSkinUtil(liveProfile.uuid);
         closeButton = false;
+
+        // Initialize search box
+        this.searchField = new GuiTextField(0, this.fontRenderer, 9, this.h - 16, this.w - 18, 12);
+        this.searchField.setMaxStringLength(16);
+        this.searchField.setEnableBackgroundDrawing(false);
+        this.searchField.setFocused(true);
+        this.searchField.setText("");
+        this.searchField.setCanLoseFocus(false);
+        this.searchField.setTextColor(getSingleRGB(255));
+
+        // Hide text box cursor
+        for (int j = 0; j < 6; j++)
+            this.searchField.updateCursorCounter();
+
         initButtons();
     }
 
@@ -87,12 +104,13 @@ public class ManeWindow extends LiveWindow {
         GlStateManager.color(1.0F, 1.0F, 1.0F, hatFade.animate(removeHat ? 0F : 1F));
         Gui.drawScaledCustomSizeModalRect(x, y, 40.0F, (float) 8, 8, 8, 32, 32, 64.0F, 64.0F);
     }
-
     public void keyTyped(char typedChar, int keyCode) {
         if (keyCode == Keyboard.KEY_PRIOR) {
             listScrollPosition = MathHelper.clamp(listScrollPosition - 10, 0, Math.max(buddyListEntries.size() - 1, 0));
         } else if (keyCode == Keyboard.KEY_NEXT) {
             listScrollPosition = MathHelper.clamp(listScrollPosition + 10, 0, Math.max(buddyListEntries.size() - 1, 0));
+        } else {
+            this.searchField.textboxKeyTyped(typedChar, keyCode);
         }
         super.keyTyped(typedChar, keyCode);
     }
@@ -169,6 +187,14 @@ public class ManeWindow extends LiveWindow {
         return true;
     }
 
+    private static boolean searchFilter(String username){
+        try {
+            return searchField.getText().trim().length() > 0 && !username.contains(searchField.getText().trim());
+        } catch (Exception e){
+            return false;
+        }
+    }
+
     public static void generateBuddylist() {
         buddyListEntries.clear();
         Minecraft mc = Minecraft.getMinecraft();
@@ -194,6 +220,8 @@ public class ManeWindow extends LiveWindow {
                     continue;
                 if (!rightMode(mode, uuid))
                     continue;
+                if (searchFilter(liveProfile.username))
+                    continue;
                 buddyListEntries.add(new BuddyListEntry(uuid, liveProfile.username, LivemessageUtil.checkOnlineStatus(uuid)));
             }
         }
@@ -210,6 +238,8 @@ public class ManeWindow extends LiveWindow {
                     continue;
                 if (!rightMode(mode, uuid))
                     continue;
+                if (searchFilter(liveProfile.username))
+                    continue;
                 buddyListEntries.add(new BuddyListEntry(uuid, liveProfile.username, LivemessageUtil.checkOnlineStatus(uuid)));
             }
         }
@@ -220,6 +250,8 @@ public class ManeWindow extends LiveWindow {
             GameProfile gameProfile = list.get(i).getGameProfile();
             UUID uuid = gameProfile.getId();
             if (uuid.equals(mc.player.getUniqueID()) || LivemessageGui.friends.contains(uuid) || LivemessageGui.chats.contains(uuid) || LivemessageGui.blocked.contains(uuid))
+                continue;
+            if (searchFilter(gameProfile.getName()))
                 continue;
             buddyListEntries.add(new BuddyListEntry(uuid, gameProfile.getName(), true));
         }
@@ -233,6 +265,8 @@ public class ManeWindow extends LiveWindow {
                 if (liveProfile == null)
                     continue;
                 if (!rightMode(mode, uuid))
+                    continue;
+                if (searchFilter(liveProfile.username))
                     continue;
                 buddyListEntries.add(new BuddyListEntry(uuid, liveProfile.username, LivemessageUtil.checkOnlineStatus(uuid)));
             }
@@ -295,6 +329,19 @@ public class ManeWindow extends LiveWindow {
         fontRenderer.drawString("online", 42, titlebarHeight + 5 + 11, getSingleRGB(128));
         drawRect(3, titlebarHeight + 3, 36, 36, getRGB(60, 148, 100));
         drawProfilePic(5, titlebarHeight + 5);
+
+        // Search field
+        drawRect(5 - 1, this.h - footer - 5 - 1, this.w - 10 + 2, footer + 2, getSingleRGB(64));
+        drawRect(5, this.h - footer - 5, this.w - 10, footer, getSingleRGB(24));
+
+        this.searchField.setTextColor(getSingleRGB((active) ? 255 : 128));
+        this.searchField.x = 8;
+        this.searchField.y = this.h - footer - 2;
+        this.searchField.width = this.w - 18;
+        this.searchField.drawTextBox();
+
+        if (this.searchField.getText().trim().length() == 0)
+            fontRenderer.drawString("Search...", 8, this.h - footer - 2, getSingleRGB(64));
 
         // Tooltips
         liveButtons.forEach(LiveButton::drawTooltips);
