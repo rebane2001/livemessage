@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.util.math.MathHelper;
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
@@ -169,6 +170,10 @@ public class LiveWindow {
     }
 
     public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
+    }
+
+    /*
+    public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
         if (dragging) {
             x = Math.max(0, mouseX - dragX);
             x -= x % LivemessageGui.scl;
@@ -179,6 +184,25 @@ public class LiveWindow {
             w -= w % LivemessageGui.scl;
             h = MathHelper.clamp(mouseY - dragY - y, minh, maxh);
             h -= h % LivemessageGui.scl;
+        }
+    }
+     */
+
+    public void handleMouseDrag(){
+        if (dragging || resizing){
+            final int mouseX = Mouse.getX();
+            final int mouseY = LivemessageGui.screenHeight - Mouse.getY();
+            if (dragging) {
+                x = Math.max(0, mouseX - dragX);
+                x -= x % LivemessageGui.scl;
+                y = Math.max(0, mouseY - dragY);
+                y -= y % LivemessageGui.scl;
+            } else if (resizing) {
+                w = MathHelper.clamp(mouseX - dragX - x, minw, maxw);
+                w -= w % LivemessageGui.scl;
+                h = MathHelper.clamp(mouseY - dragY - y, minh, maxh);
+                h -= h % LivemessageGui.scl;
+            }
         }
     }
 
@@ -195,6 +219,7 @@ public class LiveWindow {
     }
 
     public void preDrawWindow() {
+        handleMouseDrag();
         Framebuffer mb = null;
         Framebuffer fb = null;
         if (animateIn) {
