@@ -14,7 +14,7 @@ apply plugin: 'org.spongepowered.mixin'
 
 version = mod_version
 group = mod_group
-archivesBaseName = mod_id + "-1.12.2-mixin8"
+archivesBaseName = mod_id
 
 sourceCompatibility = targetCompatibility = '1.8'
 compileJava {
@@ -33,25 +33,12 @@ minecraft {
     serverRunArgs += "--mixin ${resolved_core_config}"
 }
 
-configurations {
-    mixinOld
-    mixinNew
-
-    provided.extendsFrom mixinOld
-    provided.extendsFrom mixinNew
-}
-
 repositories {
     maven { url = "https://repo.spongepowered.org/maven" }
 }
 
 dependencies {
-    mixinOld('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
-        exclude module: 'guava'
-        exclude module: 'commons-io'
-        exclude module: 'gson'
-    }
-    mixinNew('org.spongepowered:mixin:0.8-SNAPSHOT') {
+    provided('org.spongepowered:mixin:0.8.2') {
         exclude module: 'guava'
         exclude module: 'commons-io'
         exclude module: 'gson'
@@ -76,11 +63,11 @@ processResources {
 }
 
 jar {
-    //from(configurations.mixinNew.collect {
-    //    it.isDirectory() ? it : zipTree(it)
-    //}) {
-    //    exclude "LICENSE.txt", "META-INF/MANIFSET.MF", "META-INF/maven/**", "META-INF/*.RSA", "META-INF/*.SF"
-    //}
+    from(configurations.provided.collect {
+        it.isDirectory() ? it : zipTree(it)
+    }) {
+        exclude "LICENSE.txt", "META-INF/MANIFSET.MF", "META-INF/maven/**", "META-INF/*.RSA", "META-INF/*.SF"
+    }
 
     manifest {
         attributes "FMLCorePlugin": mod_core_plugin
@@ -91,36 +78,3 @@ jar {
         attributes "MixinConfigs": mod_mixin_configs.replace('${mod_id}', mod_id)
     }
 }
-
-task jarMixin7(type: Jar) {
-    // referring to the output in this way
-    // allows Gradle to infer task dependencies automatically
-    //from sourceSets.main.output
-    from reobfJar
-
-    from(configurations.mixinOld.collect {
-        it.isDirectory() ? it : zipTree(it)
-    }) {
-        exclude "LICENSE.txt", "META-INF/MANIFSET.MF", "META-INF/maven/**", "META-INF/*.RSA", "META-INF/*.SF"
-    }
-
-    baseName = mod_id + "-1.12.2-mixin7"
-}
-
-task jarMixin8(type: Jar) {
-    // referring to the output in this way
-    // allows Gradle to infer task dependencies automatically
-    //from sourceSets.main.output
-    from jar.source
-
-    from(configurations.mixinNew.collect {
-        it.isDirectory() ? it : zipTree(it)
-    }) {
-        exclude "LICENSE.txt", "META-INF/MANIFSET.MF", "META-INF/maven/**", "META-INF/*.RSA", "META-INF/*.SF"
-    }
-
-    baseName = mod_id + "-1.12.2-mixin8"
-}
-
-build.dependsOn jarMixin7
-build.dependsOn jarMixin8
