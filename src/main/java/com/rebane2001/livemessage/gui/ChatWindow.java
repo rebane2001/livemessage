@@ -407,16 +407,16 @@ public class ChatWindow extends LiveWindow {
         TextureManager textureManager = Minecraft.getMinecraft().getTextureManager();
         textureManager.bindTexture(new ResourceLocation(Livemessage.MOD_ID + ":" + "icons.png"));
         GlStateManager.color(0.5f, 0.5f, 0.5f);
-        Gui.drawModalRectWithCustomSizedTexture(w - 13, titlebarHeight + 4, 0, 0, 9, 9, 36, 9);
-        Gui.drawModalRectWithCustomSizedTexture(w - 13, titlebarHeight + 4 + 13, 9, 0, 9, 9, 36, 9);
-        Gui.drawModalRectWithCustomSizedTexture(w - 13, titlebarHeight + 4 + 26, 18, 0, 9, 9, 36, 9);
+        Gui.drawModalRectWithCustomSizedTexture(w - 13, titlebarHeight + 4, 0, 0, 9, 9, 45, 9);
+        Gui.drawModalRectWithCustomSizedTexture(w - 13, titlebarHeight + 4 + 13, 9, 0, 9, 9, 45, 9);
+        Gui.drawModalRectWithCustomSizedTexture(w - 13, titlebarHeight + 4 + 26, 18, 0, 9, 9, 45, 9);
         GlStateManager.color(getRed(fgColor) / 255f, getGreen(fgColor) / 255f, getBlue(fgColor) / 255f);
         if (chatSettings.isFriend)
-            Gui.drawModalRectWithCustomSizedTexture(w - 13, titlebarHeight + 4, 0, 0, 9, 9, 36, 9);
+            Gui.drawModalRectWithCustomSizedTexture(w - 13, titlebarHeight + 4, 0, 0, 9, 9, 45, 9);
         if (chatSettings.isBlocked)
-            Gui.drawModalRectWithCustomSizedTexture(w - 13, titlebarHeight + 4 + 13, 9, 0, 9, 9, 36, 9);
+            Gui.drawModalRectWithCustomSizedTexture(w - 13, titlebarHeight + 4 + 13, 9, 0, 9, 9, 45, 9);
         if (chatSettings.customColor > 0)
-            Gui.drawModalRectWithCustomSizedTexture(w - 13, titlebarHeight + 4 + 26, 18, 0, 9, 9, 36, 9);
+            Gui.drawModalRectWithCustomSizedTexture(w - 13, titlebarHeight + 4 + 26, 18, 0, 9, 9, 45, 9);
 
         int chatbg = 36;
         int textbg = 24;

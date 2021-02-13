@@ -61,6 +61,9 @@ public class ManeWindow extends LiveWindow {
         liveButtons.add(new LiveButton(0, 14, titlebarHeight + 3, 11, 11, true, "", "Settings", () -> {
             Minecraft.getMinecraft().displayGuiScreen(new GuiConfig(Minecraft.getMinecraft().currentScreen, Livemessage.MOD_ID, false, false, "Livemessage Settings", LivemessageConfig.class));
         }));
+        liveButtons.add(new LiveButton(1, 14, titlebarHeight + 3 + 13, 11, 11, true, "", "Mark all as read", () -> {
+            LivemessageGui.markAllAsRead();
+        }));
     }
 
     private void drawProfilePic(int x, int y) {
@@ -91,7 +94,7 @@ public class ManeWindow extends LiveWindow {
         } else if (keyCode == Keyboard.KEY_NEXT) {
             listScrollPosition = MathHelper.clamp(listScrollPosition + 10, 0, Math.max(buddyListEntries.size() - 1, 0));
         }
-        super.keyTyped(typedChar,keyCode);
+        super.keyTyped(typedChar, keyCode);
     }
 
     public void mouseReleased(int mouseX, int mouseY, int state) {
@@ -148,18 +151,18 @@ public class ManeWindow extends LiveWindow {
         }
     }
 
-    private static boolean rightMode(int mode, UUID uuid){
-        switch (mode){
+    private static boolean rightMode(int mode, UUID uuid) {
+        switch (mode) {
             case 0:
-                if (LivemessageGui.unreadMessages.getOrDefault(uuid,0) == 0)
+                if (LivemessageGui.unreadMessages.getOrDefault(uuid, 0) == 0)
                     return false;
                 break;
             case 1:
-                if (LivemessageGui.unreadMessages.getOrDefault(uuid,0) > 0 || !LivemessageUtil.checkOnlineStatus(uuid))
+                if (LivemessageGui.unreadMessages.getOrDefault(uuid, 0) > 0 || !LivemessageUtil.checkOnlineStatus(uuid))
                     return false;
                 break;
             case 2:
-                if (LivemessageGui.unreadMessages.getOrDefault(uuid,0) > 0 || LivemessageUtil.checkOnlineStatus(uuid))
+                if (LivemessageGui.unreadMessages.getOrDefault(uuid, 0) > 0 || LivemessageUtil.checkOnlineStatus(uuid))
                     return false;
                 break;
         }
@@ -189,8 +192,8 @@ public class ManeWindow extends LiveWindow {
                     continue;
                 if (LivemessageGui.blocked.contains(uuid))
                     continue;
-                if (!rightMode(mode,uuid))
-                        continue;
+                if (!rightMode(mode, uuid))
+                    continue;
                 buddyListEntries.add(new BuddyListEntry(uuid, liveProfile.username, LivemessageUtil.checkOnlineStatus(uuid)));
             }
         }
@@ -205,7 +208,7 @@ public class ManeWindow extends LiveWindow {
                     continue;
                 if (LivemessageGui.friends.contains(uuid) || LivemessageGui.blocked.contains(uuid))
                     continue;
-                if (!rightMode(mode,uuid))
+                if (!rightMode(mode, uuid))
                     continue;
                 buddyListEntries.add(new BuddyListEntry(uuid, liveProfile.username, LivemessageUtil.checkOnlineStatus(uuid)));
             }
@@ -229,7 +232,7 @@ public class ManeWindow extends LiveWindow {
                 LiveProfile liveProfile = LiveProfileCache.getLiveprofileFromUUID(uuid);
                 if (liveProfile == null)
                     continue;
-                if (!rightMode(mode,uuid))
+                if (!rightMode(mode, uuid))
                     continue;
                 buddyListEntries.add(new BuddyListEntry(uuid, liveProfile.username, LivemessageUtil.checkOnlineStatus(uuid)));
             }
@@ -239,7 +242,7 @@ public class ManeWindow extends LiveWindow {
     public void drawBuddylist() {
         int lineHeight = 0;
         for (int i = listScrollPosition; i < buddyListEntries.size(); ++i) {
-            if (lineHeight*12 > h - (buddyListY + footer + 22))
+            if (lineHeight * 12 > h - (buddyListY + footer + 22))
                 break;
             BuddyListEntry buddyListEntry = buddyListEntries.get(i);
             String buddyText = (buddyListEntry.uuid == null ? "\u00A7l" : ((buddyListEntry.online ? "   " : "   \u00A7o") + (LivemessageGui.blocked.contains(buddyListEntry.uuid) ? "\u00A7m" : ""))) + buddyListEntry.username;
@@ -248,7 +251,7 @@ public class ManeWindow extends LiveWindow {
                 int unreads = LivemessageGui.unreadMessages.getOrDefault(buddyListEntry.uuid, 0);
                 String unreadString = "(" + unreads + ")";
                 if (unreads > 0)
-                    fontRenderer.drawString(unreadString, buddyListX + 5 + fontRenderer.getStringWidth(buddyText + " "), buddyListY + 5 + 12 * lineHeight, (LivemessageGui.blocked.contains(buddyListEntry.uuid)) ? getSingleRGB(64) : getRGB(255,0,0));
+                    fontRenderer.drawString(unreadString, buddyListX + 5 + fontRenderer.getStringWidth(buddyText + " "), buddyListY + 5 + 12 * lineHeight, (LivemessageGui.blocked.contains(buddyListEntry.uuid)) ? getSingleRGB(64) : getRGB(255, 0, 0));
             }
             lineHeight++;
         }
@@ -260,7 +263,7 @@ public class ManeWindow extends LiveWindow {
         super.drawWindow(bgColor, fgColor);
 
         drawRect(buddyListX - 1, buddyListY - 1, w - 10 + 2, h - (buddyListY + 10 + footer) + 2, getRGB(64, 64, 64));
-        drawRect(buddyListX, buddyListY, w - buddyListX*2, h - (buddyListY + 10 + footer), getRGB(36, 36, 36));
+        drawRect(buddyListX, buddyListY, w - buddyListX * 2, h - (buddyListY + 10 + footer), getRGB(36, 36, 36));
 
         // Buttons
         liveButtons.forEach(LiveButton::draw);
@@ -269,16 +272,17 @@ public class ManeWindow extends LiveWindow {
         TextureManager textureManager = Minecraft.getMinecraft().getTextureManager();
         textureManager.bindTexture(new ResourceLocation(Livemessage.MOD_ID + ":" + "icons.png"));
         GlStateManager.color(0.5f, 0.5f, 0.5f);
-        Gui.drawModalRectWithCustomSizedTexture(w - 13, titlebarHeight + 4, 27, 0, 9, 9, 36, 9);
+        Gui.drawModalRectWithCustomSizedTexture(w - 13, titlebarHeight + 4, 27, 0, 9, 9, 45, 9);
+        Gui.drawModalRectWithCustomSizedTexture(w - 13, titlebarHeight + 4 + 13, 36, 0, 9, 9, 45, 9);
 
         generateBuddylist();
         scrollBarHeight = (buddyListEntries.size() < 2) ? 0 : (int) MathHelper.clamp(Math.floor((h - (buddyListY + 10 + footer)) / Math.max((buddyListEntries.size() - 1) / 10, 1)), 10, (h - (buddyListY + 10 + footer)) / 2);
         if (active && mouseInRect(buddyListX, buddyListY, w - 10, h - (buddyListY + 10 + footer), lastMouseX, lastMouseY)) {
             int i = (int) Math.floor((lastMouseY - buddyListY - this.y - 3) / 12f) + listScrollPosition;
-            if (i < buddyListEntries.size() && i >= 0 && (i-listScrollPosition)*12 <= h - (buddyListY + footer + 22)) {
+            if (i < buddyListEntries.size() && i >= 0 && (i - listScrollPosition) * 12 <= h - (buddyListY + footer + 22)) {
                 BuddyListEntry buddyListEntry = buddyListEntries.get(i);
                 if (buddyListEntry.uuid != null)
-                    drawRect(buddyListX, buddyListY + (i-listScrollPosition)*12 + 3, w - 10, 12, getRGB(64, 64, 64));
+                    drawRect(buddyListX, buddyListY + (i - listScrollPosition) * 12 + 3, w - 10, 12, getRGB(64, 64, 64));
             }
         }
         drawBuddylist();
