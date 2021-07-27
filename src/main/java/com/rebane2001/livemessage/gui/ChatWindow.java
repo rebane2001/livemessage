@@ -326,7 +326,7 @@ public class ChatWindow extends LiveWindow {
                 }
                 if (!isTrimmed)
                     message = timeFormat.format(timestamp) + message;
-                int maxWidth = w - (chatBoxX * 2 + 8 + (isTrimmed ? fontRenderer.getStringWidth("<00:00> ") : 0));
+                int maxWidth = w - (chatBoxX * 2 + 8 + (isTrimmed ? fontRenderer.getStringWidth("<00:00> ") : 0) + scrollBarWidth - 5);
                 String trimmed = fontRenderer.trimStringToWidth(message, maxWidth);
                 fontRenderer.drawString(trimmed, chatBoxX + 4 + (isTrimmed ? fontRenderer.getStringWidth("<00:00> ") : 0), chatBoxY + 5 + 12 * drawHeight, chatMessage.sentByMe ? chatColorMe : chatColorOther);
 
