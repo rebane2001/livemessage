@@ -21,28 +21,34 @@ public abstract class GuiNewChatMixin extends Gui {
 
     @Inject(method = "printChatMessageWithOptionalDeletion", at = @At(value = "HEAD"), cancellable = true)
     public void printChatMessageWithOptionalDeletion(ITextComponent chatComponent, int chatLineId, CallbackInfo ci) {
-        String text = chatComponent.getUnformattedText();
+        try {
+            String text = chatComponent.getUnformattedText();
 
-        if (LivemessageConfig.otherSettings.timestampPatch)
-            text = timestampPattern.matcher(text).replaceAll("");
+            if (LivemessageConfig.otherSettings.timestampPatch)
+                text = timestampPattern.matcher(text).replaceAll("");
 
-        for (Pattern fromPattern : LivemessageUtil.FROM_PATTERNS) {
-            Matcher matcher = fromPattern.matcher(text);
-            while (matcher.find()) {
-                System.out.println("[Livemessage] New message from " + matcher.group(1) + " < " + matcher.group(2));
-                if (LivemessageGui.newMessage(matcher.group(1), matcher.group(2), false))
-                    ci.cancel();
-                return;
+            for (Pattern fromPattern : LivemessageUtil.FROM_PATTERNS) {
+                Matcher matcher = fromPattern.matcher(text);
+                while (matcher.find()) {
+                    System.out.println("[Livemessage] New message from " + matcher.group(1) + " < " + matcher.group(2));
+                    if (LivemessageGui.newMessage(matcher.group(1), matcher.group(2), false))
+                        ci.cancel();
+                    return;
+                }
             }
-        }
-        for (Pattern toPattern : LivemessageUtil.TO_PATTERNS) {
-            Matcher matcher = toPattern.matcher(text);
-            while (matcher.find()) {
-                System.out.println("[Livemessage] Message sent to " + matcher.group(1) + " > " + matcher.group(2));
-                if (LivemessageGui.newMessage(matcher.group(1), matcher.group(2), true))
-                    ci.cancel();
-                return;
+            for (Pattern toPattern : LivemessageUtil.TO_PATTERNS) {
+                Matcher matcher = toPattern.matcher(text);
+                while (matcher.find()) {
+                    System.out.println("[Livemessage] Message sent to " + matcher.group(1) + " > " + matcher.group(2));
+                    if (LivemessageGui.newMessage(matcher.group(1), matcher.group(2), true))
+                        ci.cancel();
+                    return;
+                }
             }
+        } catch (Exception e) {
+            // If *anything* goes wrong, catch the error so even if Livemessage fails,
+            // the user will still see the message in normal chat.
+            e.printStackTrace();
         }
 
     }
