@@ -14,6 +14,7 @@ import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.client.config.GuiConfig;
@@ -209,7 +210,31 @@ public class ManeWindow extends LiveWindow {
             e.printStackTrace();
         }
 
-        //buddyListEntries.add(new BuddyListEntry("Nearby"));
+        List<UUID> nearbyPlayers = new ArrayList<>();
+        for (EntityPlayer e : mc.world.playerEntities){
+            if (mc.player != e)
+                nearbyPlayers.add(e.getGameProfile().getId());
+        }
+        if (nearbyPlayers.size() > 0) {
+            buddyListEntries.add(new BuddyListEntry("Nearby"));
+            for (int mode = 0; mode < 3; ++mode) {
+                for (int i = 0; i < nearbyPlayers.size(); ++i) {
+                    UUID uuid = nearbyPlayers.get(i);
+                    LiveProfile liveProfile = LiveProfileCache.getLiveprofileFromUUID(uuid, false);
+                    if (liveProfile == null)
+                        continue;
+                    if (LivemessageGui.blocked.contains(uuid))
+                        continue;
+                    if (!rightMode(mode, uuid))
+                        continue;
+                    if (searchFilter(liveProfile.username))
+                        continue;
+                    buddyListEntries.add(new BuddyListEntry(uuid, liveProfile.username, LivemessageUtil.checkOnlineStatus(uuid)));
+                }
+            }
+        }
+
+
         buddyListEntries.add(new BuddyListEntry("Friends"));
 
         for (int mode = 0; mode < 3; ++mode) {
