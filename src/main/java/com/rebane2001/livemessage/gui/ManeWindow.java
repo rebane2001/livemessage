@@ -209,6 +209,7 @@ public class ManeWindow extends LiveWindow {
             e.printStackTrace();
         }
 
+        //buddyListEntries.add(new BuddyListEntry("Nearby"));
         buddyListEntries.add(new BuddyListEntry("Friends"));
 
         for (int mode = 0; mode < 3; ++mode) {

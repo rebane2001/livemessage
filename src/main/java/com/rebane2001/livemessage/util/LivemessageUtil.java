@@ -41,6 +41,7 @@ public class LivemessageUtil {
         public boolean isFriend = false;
         public boolean isBlocked = false;
         public int customColor = 0;
+        public String lastName;
     }
 
     /**

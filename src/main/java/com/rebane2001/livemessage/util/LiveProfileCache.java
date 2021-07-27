@@ -31,6 +31,7 @@ public class LiveProfileCache {
         public UUID uuid;
         public String username;
         public ArrayList<String> pastNames;
+        public boolean weakCache;
     }
 
     private static Pattern usernamePattern = Pattern.compile("^\\w{3,16}$");
@@ -113,7 +114,7 @@ public class LiveProfileCache {
 
         ExecutorService executor = Executors.newFixedThreadPool(8);
         for (UUID uuid : savedUUIDs) {
-            executor.submit(() -> getLiveprofileFromUUID(uuid,false));
+            executor.submit(() -> getLiveprofileFromUUID(uuid,true));
         }
 
 
@@ -172,24 +173,41 @@ public class LiveProfileCache {
         return null;
     }
 
+    // Weak means we can use the cached username saved on disk
     public static LiveProfile getLiveprofileFromUUID(UUID uuid, boolean weak) {
-        if (cachedProfiles.containsKey(uuid))
-            return cachedProfiles.get(uuid);
-        if (weakCachedProfiles.containsKey(uuid) && weak)
-            return weakCachedProfiles.get(uuid);
+        if (cachedProfiles.containsKey(uuid)) {
+            LiveProfile cachedProfile = cachedProfiles.get(uuid);
+            if (!cachedProfile.weakCache || weak)
+                return cachedProfile;
+        }
         if (badUUIDs.contains(uuid))
             return null;
+        LivemessageUtil.ChatSettings chatSettings = LivemessageUtil.getChatSettings(uuid);
         LiveProfile liveProfile = new LiveProfile();
         liveProfile.uuid = uuid;
-        liveProfile.username = getUsernameFromTab(uuid);
+        if (weak && getUsernameFromTab(uuid) == null) {
+            if (chatSettings.lastName != null) {
+                liveProfile.weakCache = true;
+                liveProfile.username = chatSettings.lastName;
+            }
+        }
         if (liveProfile.username == null) {
-            liveProfile.pastNames = pollPastNames(uuid);
-            if (liveProfile.pastNames == null)
-                return banUUID(uuid);
-            liveProfile.username = liveProfile.pastNames.get(0);
+            liveProfile.username = getUsernameFromTab(uuid);
+            if (liveProfile.username == null) {
+                liveProfile.pastNames = pollPastNames(uuid);
+                if (liveProfile.pastNames == null)
+                    return banUUID(uuid);
+                liveProfile.username = liveProfile.pastNames.get(0);
+            }
+            liveProfile.weakCache = false;
+            if (!liveProfile.username.equals(chatSettings.lastName)) {
+                // Cache username for the future
+                chatSettings.lastName = liveProfile.username;
+                LivemessageUtil.saveChatSettings(liveProfile.uuid, chatSettings);
+            }
+            cachedNames.put(liveProfile.username.toLowerCase(Locale.ROOT), uuid);
         }
         cachedProfiles.put(uuid, liveProfile);
-        cachedNames.put(liveProfile.username.toLowerCase(Locale.ROOT), uuid);
         return liveProfile;
     }
 
