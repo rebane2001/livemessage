@@ -32,8 +32,6 @@ public class ChatWindow extends LiveWindow {
     boolean valid;
 
     LiveProfile liveProfile;
-    boolean pastNamesB = false;
-    int longestPastName = 80;
     String msgString;
 
     final int scrollBarWidth = 10;
@@ -267,20 +265,10 @@ public class ChatWindow extends LiveWindow {
         if (mouseInRect(0, 0, w, h, mouseX, mouseY))
             markAsRead();
         liveButtons.forEach(LiveButton::runIfClicked);
-        if (pastNamesB) {
-            pastNamesB = false;
-            return;
-        }
         if (mouseInRect(chatBoxX + w - 10 - scrollBarWidth, chatBoxY, scrollBarWidth, h - (chatBoxY + 10 + chatBoxSize), mouseX, mouseY) && chatHistory.size() > 1) {
             scrolling = true;
             dragY = mouseY - (this.y + chatBoxY + (h - (chatBoxY + 10 + chatBoxSize + scrollBarHeight)) * chatScrollPosition / (chatHistory.size() - 1));
         }
-        longestPastName = Math.max(fontRenderer.getStringWidth(liveProfile.username), longestPastName);
-        if (mouseX > x + 40 && mouseX < x + 40 + longestPastName + 4 && mouseY > y + titlebarHeight + 4 && mouseY < y + titlebarHeight + 4 + 12) {
-            pastNamesB = true;
-            return;
-        }
-
         super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
@@ -449,23 +437,6 @@ public class ChatWindow extends LiveWindow {
 
         drawChatHistory(chatBoxX, chatBoxY, getSingleRGB(255), fgColor);
         drawProfilePic(5, titlebarHeight + 5);
-
-        // Namehistory
-        if (pastNamesB) {
-            if (liveProfile.pastNames == null) {
-                drawRect(40, titlebarHeight + 3, longestPastName + 4, 12, getSingleRGB(128));
-                liveProfile = LiveProfileCache.forceloadNameHistory(liveProfile);
-            } else {
-                drawRect(40, titlebarHeight + 3, longestPastName + 4, 12 * liveProfile.pastNames.size(), fgColor);
-                int i = 0;
-                for (String name : liveProfile.pastNames) {
-                    if (lastMouseX > x + 40 && lastMouseX < x + 40 + longestPastName + 4 && lastMouseY > y + titlebarHeight + 3 + 12 * i && lastMouseY < y + titlebarHeight + 4 + 12 + 12 * i)
-                        drawRect(40, titlebarHeight + 3 + 12 * i, longestPastName + 4, 12, getRGBA(255, 255, 255, 64));
-                    fontRenderer.drawString(name, 42, titlebarHeight + 5 + 12 * i, getSingleRGB(255));
-                    i++;
-                }
-            }
-        }
 
         // Tooltips
         liveButtons.forEach(LiveButton::drawTooltips);
