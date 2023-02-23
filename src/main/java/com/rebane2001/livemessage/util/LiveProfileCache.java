@@ -1,16 +1,12 @@
 package com.rebane2001.livemessage.util;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.rebane2001.livemessage.gui.LivemessageGui;
-import com.rebane2001.livemessage.gui.ManeWindow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.client.network.NetworkPlayerInfo;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URL;
 import java.util.*;
@@ -30,7 +26,6 @@ public class LiveProfileCache {
     public static class LiveProfile {
         public UUID uuid;
         public String username;
-        public ArrayList<String> pastNames;
     }
 
     private static Pattern usernamePattern = Pattern.compile("^\\w{3,16}$");
@@ -53,36 +48,21 @@ public class LiveProfileCache {
         return new UUID(bi1.longValue(), bi2.longValue());
     }
 
-    private static ArrayList<String> pollPastNames(UUID uuid) {
+    private static String getUsernameFromUUID(UUID uuid) {
         System.out.println("[Livemessage] Looking up: " + uuid.toString());
-        ArrayList<String> pastNames = new ArrayList<String>();
+        String username = null;
         try {
-            JsonArray array =
-                    null;
-            array = LivemessageUtil.getResources(
-                    new URL(
-                            "https://api.mojang.com/user/profiles/"
-                                    + uuid.toString()
-                                    + "/names"),
-                    "GET")
-                    .getAsJsonArray();
-
-            for (JsonElement e : array) {
-                JsonObject node = e.getAsJsonObject();
-                String name = node.get("name").getAsString();
-                long changedAt = node.has("changedToAt") ? node.get("changedToAt").getAsLong() : 0;
-                pastNames.add(0, name);
-            }
-            /*
-            for (String name : pastNames) {
-                longestPastName = Math.max(fontRenderer.getStringWidth(name), longestPastName);
-            }
-            */
+            username = LivemessageUtil.getResources(
+                            new URL(
+                                    "https://sessionserver.mojang.com/session/minecraft/profile/"
+                                            + uuid.toString()),
+                            "GET").getAsJsonObject().get("name").getAsString()
+                    ;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
-        return pastNames;
+        return username;
     }
 
     private static UUID pollUUID(String username) {
@@ -134,14 +114,6 @@ public class LiveProfileCache {
         fixedPool.execute(runnableTask);*/
     }
 
-    public static LiveProfile forceloadNameHistory(LiveProfile liveProfile) {
-        if (cachedProfiles.get(liveProfile.uuid).pastNames != null)
-            return cachedProfiles.get(liveProfile.uuid);
-        liveProfile.pastNames = pollPastNames(liveProfile.uuid);
-        cachedProfiles.put(liveProfile.uuid, liveProfile);
-        return liveProfile;
-    }
-
     private static UUID getUUIDFromTab(String username) {
         try {
             NetHandlerPlayClient nethandlerplayclient = Minecraft.getMinecraft().player.connection;
@@ -183,10 +155,9 @@ public class LiveProfileCache {
         liveProfile.uuid = uuid;
         liveProfile.username = getUsernameFromTab(uuid);
         if (liveProfile.username == null) {
-            liveProfile.pastNames = pollPastNames(uuid);
-            if (liveProfile.pastNames == null)
+            liveProfile.username = getUsernameFromUUID(uuid);
+            if (liveProfile.username == null)
                 return banUUID(uuid);
-            liveProfile.username = liveProfile.pastNames.get(0);
         }
         cachedProfiles.put(uuid, liveProfile);
         cachedNames.put(liveProfile.username.toLowerCase(Locale.ROOT), uuid);
