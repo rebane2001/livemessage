@@ -1,14 +1,12 @@
 package com.rebane2001.livemessage.gui;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.rebane2001.livemessage.LivemessageConfig;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.shader.Framebuffer;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Mouse;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.util.math.MathHelper;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
@@ -38,7 +36,6 @@ public class LiveWindow {
     public boolean resizing = false;
     public boolean closeButton = true;
     public int primaryColor = 0;
-    public FontRenderer fontRenderer;
 
     boolean animateIn = true;
     long animateInStart;
@@ -46,8 +43,7 @@ public class LiveWindow {
     LiveWindow() {
         x = (int) (Math.random() * (LivemessageGui.screenWidth - w));
         y = (int) (Math.random() * (LivemessageGui.screenHeight - h));
-        fontRenderer = Minecraft.getMinecraft().fontRenderer;
-        primaryColor = GuiUtil.getWindowColor(Minecraft.getMinecraft().player.getUniqueID());
+        primaryColor = GuiUtil.getWindowColor(MinecraftClient.getInstance().player.getUuid());
         if (LivemessageGui.liveWindows.size() > 0)
             LivemessageGui.liveWindows.get(LivemessageGui.liveWindows.size() - 1).deactivateWindow();
         animateInStart = System.currentTimeMillis();
@@ -98,8 +94,9 @@ public class LiveWindow {
         public void draw() {
             drawRect(gx(), by, bw, bh,
                     isMouseOver() ? hoverColor : idleColor);
-            if (!btnText.isEmpty())
-                fontRenderer.drawString(btnText, gx() + bw / 2 - fontRenderer.getStringWidth(btnText) / 2, by, textColor);
+            // TODO: Fontrenderer
+            // if (!btnText.isEmpty())
+            //    drawContext.drawText(getTextRenderer(), btnText, gx() + bw / 2 - fontRenderer.getStringWidth(btnText) / 2, by, textColor);
         }
 
         public void drawTooltips() {
@@ -125,11 +122,12 @@ public class LiveWindow {
         return (mouseX > this.x + x && mouseX < this.x + x + w && mouseY > this.y + y && mouseY < this.y + y + h);
     }
 
-    ;
-
     public void keyTyped(char typedChar, int keyCode) {
-        if (keyCode == Keyboard.KEY_TAB && LivemessageGui.liveWindows.size() > 1) {
-            if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) {
+
+        if (keyCode == GLFW.GLFW_KEY_TAB && LivemessageGui.liveWindows.size() > 1) {
+            // TODO: Add check back in
+            // if (Keyboard.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
+            if (false) {
                 LiveWindow tempWindow = LivemessageGui.liveWindows.get(0);
                 LivemessageGui.liveWindows.remove(0);
                 tempWindow.activateWindow();
@@ -191,8 +189,8 @@ public class LiveWindow {
 
     public void handleMouseDrag(){
         if (dragging || resizing){
-            final int mouseX = (int) (Mouse.getX() / LivemessageConfig.guiSettings.guiScale);
-            final int mouseY = (int) (LivemessageGui.screenHeight - (Mouse.getY() / LivemessageConfig.guiSettings.guiScale));
+            final int mouseX = (int) (getMouse().getX() / LivemessageConfig.guiSettings.guiScale);
+            final int mouseY = (int) (LivemessageGui.screenHeight - (getMouse().getY() / LivemessageConfig.guiSettings.guiScale));
             if (dragging) {
                 x = Math.max(0, mouseX - dragX);
                 x -= x % scl;
@@ -219,6 +217,8 @@ public class LiveWindow {
         mouseReleased(lastMouseX, lastMouseY, 0);
     }
 
+    public void preDrawWindow() {}
+    /* TODO: Re-enable
     public void preDrawWindow() {
         handleMouseDrag();
         Framebuffer mb = null;
@@ -277,7 +277,7 @@ public class LiveWindow {
             mb.bindFramebuffer(true);
             GlStateManager.popMatrix();
         }
-    }
+    }*/
 
     public void drawTooltip(String text) {
         if (!active)
@@ -285,8 +285,9 @@ public class LiveWindow {
         int padding = 3;
         int x = lastMouseX - this.x + 1;
         int y = lastMouseY - this.y - 12 - padding;
-        drawRect(x, y, fontRenderer.getStringWidth(text) + padding * 2, 12 + padding - 1, getRGB(36, 36, 36));
-        fontRenderer.drawString(text, x + padding, y + padding, 0xFFFFFF);
+        // TODO: Fontrenderer
+        // drawRect(x, y, fontRenderer.getStringWidth(text) + padding * 2, 12 + padding - 1, getRGB(36, 36, 36));
+        // fontRenderer.drawString(text, x + padding, y + padding, 0xFFFFFF);
     }
 
     public void drawWindow(int bgColor, int fgColor) {
@@ -295,7 +296,8 @@ public class LiveWindow {
         drawRectOutline(0, 0, w, h, fgColor);
         // Titlebar
         drawRect(0, 0, w, titlebarHeight, fgColor);
-        fontRenderer.drawString(title, 5, 5, 0xFFFFFF);
+        // TODO: Fontrenderer
+        // fontRenderer.drawString(title, 5, 5, 0xFFFFFF);
         // Close button
         if (closeButton)
             drawRect(w - 13, 3, 11, 11, bgColor);
@@ -317,7 +319,7 @@ public class LiveWindow {
         GL11.glVertex2i(x + w, y);
         GL11.glEnd();
         GL11.glEnable(GL11.GL_TEXTURE_2D);
-        GlStateManager.resetColor();
+        GL11.glColor4f(1,1,1,1);
     }
 
     public void drawRectHalf(int x, int y, int w, int h, boolean top, int color) {
@@ -337,7 +339,7 @@ public class LiveWindow {
             GL11.glEnd();
         }
         GL11.glEnable(GL11.GL_TEXTURE_2D);
-        GlStateManager.resetColor();
+        GL11.glColor4f(1,1,1,1);
     }
 
     public void drawRectOutline(int x, int y, int w, int h, int color) {
@@ -350,7 +352,7 @@ public class LiveWindow {
         GL11.glVertex2i(x + w, y);
         GL11.glEnd();
         GL11.glEnable(GL11.GL_TEXTURE_2D);
-        GlStateManager.resetColor();
+        GL11.glColor4f(1,1,1,1);
     }
 
 }

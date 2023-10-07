@@ -3,13 +3,11 @@ package com.rebane2001.livemessage.gui;
 import com.google.gson.Gson;
 import com.rebane2001.livemessage.Livemessage;
 import com.rebane2001.livemessage.LivemessageConfig;
-import com.rebane2001.livemessage.util.LiveProfileCache;
 import com.rebane2001.livemessage.util.LivemessageUtil;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.*;
-import net.minecraft.client.renderer.GlStateManager;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.text.Text;
 import org.lwjgl.opengl.GL11;
 
 import java.io.BufferedWriter;
@@ -19,9 +17,12 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
-public class LivemessageGui extends GuiScreen {
+import static com.rebane2001.livemessage.gui.GuiUtil.getMouse;
+
+public class LivemessageGui extends Screen {
 
     public LivemessageGui() {
+        super(Text.of("Livemessage"));
     }
 
     public static boolean buddiesLoaded = false;
@@ -52,11 +53,13 @@ public class LivemessageGui extends GuiScreen {
      * Loads users into respective lists.
      */
     public static void loadBuddies() {
+        // todo: reimplement
         friends.clear();
         chats.clear();
         blocked.clear();
         buddiesLoaded = true;
 
+        /*
         // Read all config files
         File folder = new File(String.valueOf(Livemessage.modFolder.resolve("settings/")));
         File[] listOfFiles = folder.listFiles();
@@ -79,6 +82,7 @@ public class LivemessageGui extends GuiScreen {
                 chats.add(uuid);
             }
         }
+         */
         // Sort lists for consistency (even tho by UUID)
         Collections.sort(friends);
         Collections.sort(chats);
@@ -97,35 +101,44 @@ public class LivemessageGui extends GuiScreen {
     }
 
     public void setScl() {
+        // TODO: Reimplement
+        /*
         final ScaledResolution scaledresolution = new ScaledResolution(this.mc);
         scl = scaledresolution.getScaleFactor() / (float)LivemessageConfig.guiSettings.guiScale;
 
         screenHeight = (int) (scaledresolution.getScaledHeight_double() * scl);
         screenWidth = (int) (scaledresolution.getScaledWidth_double() * scl);
+
+         */
     }
 
-    public void initGui() {
-        Keyboard.enableRepeatEvents(true);
+    public void init() {
+        // TODO: ???
+        // Keyboard.enableRepeatEvents(true);
 
-        this.buttonList.clear();
+        // this.buttonList.clear();
 
         setScl();
 
         loadBuddies();
 
-        if (liveWindows.isEmpty())
-            liveWindows.add(new ManeWindow());
+        // TODO: reimplement manewindow
+        // if (liveWindows.isEmpty())
+        //     liveWindows.add(new ManeWindow());
     }
 
     @Override
-    public void onGuiClosed() {
-        Keyboard.enableRepeatEvents(false);
+    public void close() {
+        // TODO: ???
+        // Keyboard.enableRepeatEvents(false);
     }
 
     // Use this to open a new window or highlight existing one
+    // TODO: reimplement
     public static void openChatWindow(final UUID uuid) {
         if (uuid == null)
             return;
+        /*
         liveWindows.get(liveWindows.size() - 1).deactivateWindow();
         // Look for existing window
         for (LiveWindow liveWindow : LivemessageGui.liveWindows) {
@@ -142,9 +155,12 @@ public class LivemessageGui extends GuiScreen {
         }
         // If existing window didn't exist, add a new one
         LivemessageGui.addChatWindow(new ChatWindow(uuid));
+         */
     }
 
     // Safe chatwindow adding
+    // TODO: reimplement
+    /*
     private static void addChatWindow(ChatWindow chatWindow) {
         if (chatWindow.valid) {
             liveWindows.add(chatWindow);
@@ -152,25 +168,22 @@ public class LivemessageGui extends GuiScreen {
             liveWindows.get(liveWindows.size() - 1).activateWindow();
         }
     }
+     */
 
-    public void actionPerformed(GuiButton button) {
-        switch (button.id) {
-            case 0:
-                //Do button stuff
-                break;
-        }
-    }
-
+    // TODO: reimplement
+    /*
     public void handleMouseInput() throws IOException {
-        int mouseX = Mouse.getEventX() * this.width / this.mc.displayWidth;
-        int mouseY = this.height - Mouse.getEventY() * this.height / this.mc.displayHeight - 1;
+        int mouseX = getMouse().getEventX() * this.width / this.mc.displayWidth;
+        int mouseY = this.height -  getMouse().getEventY() * this.height / this.mc.displayHeight - 1;
         liveWindows.get(liveWindows.size() - 1).mouseMove((int) (mouseX * scl), (int) (mouseY * scl));
-        int mWheelState = Mouse.getEventDWheel();
+        int mWheelState =  getMouse().getEventDWheel();
         if (mWheelState != 0)
             liveWindows.get(liveWindows.size() - 1).mouseWheel(mWheelState);
 
         super.handleMouseInput();
     }
+
+     */
 
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
         for (int i = liveWindows.size() - 1; i >= 0; i--) {
@@ -198,16 +211,22 @@ public class LivemessageGui extends GuiScreen {
         liveWindows.get(liveWindows.size() - 1).mouseClickMove((int) (mouseX * scl), (int) (mouseY * scl), clickedMouseButton, timeSinceLastClick);
     }
 
-    protected void keyTyped(char typedChar, int keyCode) throws IOException {
-        liveWindows.get(liveWindows.size() - 1).keyTyped(typedChar, keyCode);
-        super.keyTyped(typedChar, keyCode);
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        // TODO: reimplement
+        // liveWindows.get(liveWindows.size() - 1).keyTyped(typedChar, keyCode);
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     public static boolean newMessage(String username, String message, boolean sentByMe) {
-        final UUID uuid = LiveProfileCache.getLiveprofileFromName(username).uuid;
+        // TODO: reimplement
+        // final UUID uuid = LiveProfileCache.getLiveprofileFromName(username).uuid;
+        final UUID uuid = MinecraftClient.getInstance().player.getUuid();
         boolean doHide = false;
         if (uuid != null) {
             // Write message to chat history jsonl
+            // TODO: reimplement
+            /*
             try {
                 Gson gson = new Gson();
                 FileWriter fw = new FileWriter(String.valueOf(Livemessage.modFolder.resolve("messages/" + uuid.toString() + ".jsonl")), true);
@@ -218,6 +237,7 @@ public class LivemessageGui extends GuiScreen {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+             */
             if (!chats.contains(uuid))
                 loadBuddies();
             if (!sentByMe) {
@@ -238,6 +258,8 @@ public class LivemessageGui extends GuiScreen {
                 doHide = true;
         }
         // Send message to open window
+        // TODO: reimplement
+        /*
         for (LiveWindow liveWindow : liveWindows) {
             if (!(liveWindow instanceof ChatWindow))
                 continue;
@@ -249,15 +271,15 @@ public class LivemessageGui extends GuiScreen {
                 break;
             }
         }
+         */
         return doHide;
     }
 
     @Override
-    public void drawScreen(int x, int y, float f) {
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         setScl();
         float reverseGuiScale = (float) (1f / scl * 1);
-        GlStateManager.pushMatrix();
-        GlStateManager.scale(reverseGuiScale, reverseGuiScale, reverseGuiScale);
+        GL11.glPushMatrix();
         GL11.glDisable(GL11.GL_CULL_FACE);
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
@@ -268,7 +290,7 @@ public class LivemessageGui extends GuiScreen {
         }
         GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glDisable(GL11.GL_BLEND);
-        GlStateManager.popMatrix();
-        super.drawScreen(x, y, f);
+        GL11.glPopMatrix();
+        super.render(context, mouseX, mouseY, delta);
     }
 }

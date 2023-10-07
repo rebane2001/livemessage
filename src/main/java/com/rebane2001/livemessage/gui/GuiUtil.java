@@ -1,7 +1,10 @@
 package com.rebane2001.livemessage.gui;
 
 import com.rebane2001.livemessage.util.LivemessageUtil;
-import net.minecraft.client.Minecraft;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Mouse;
+import net.minecraft.client.font.TextRenderer;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -94,15 +97,27 @@ public class GuiUtil {
         return hue;
     }
 
+    // TODO: Temporary?
+    public static TextRenderer getTextRenderer() {
+        return MinecraftClient.getInstance().textRenderer;
+    }
+    public static Mouse getMouse() {
+        return MinecraftClient.getInstance().mouse;
+    }
+
     /**
      * Gets the window color in the following order:
      * 1. Return user-defined color from settings, if found.
      * 2. Return special color, if UUID has one.
      * 3. Return color auto-generated from the UUID.
      */
-    public static int getWindowColor(UUID uuid){
+    public static int getWindowColor(@Nullable UUID uuid){
         // Check for user-defined custom color
-        int customColor = LivemessageUtil.getChatSettings(uuid).customColor;
+        if (uuid == null) return 0;
+
+        // int customColor = LivemessageUtil.getChatSettings(uuid).customColor;
+        // TODO: Add back support for user-defined colors
+        int customColor = 0;
         if (customColor > 0)
             return customColor;
         // Check if color is a special color
@@ -150,17 +165,18 @@ public class GuiUtil {
             if (val != currentValue){
                 startValue = getState();
                 currentValue = val;
-                startTime = Minecraft.getSystemTime();
+                // TODO: Make sure getRenderTime is okay to use
+                startTime = MinecraftClient.getInstance().getRenderTime();
             }
             return getState();
         }
 
         // Sets animationValue to correct time
         public float getState() {
-            if (Minecraft.getSystemTime() - startTime > animationLength){
+            if (MinecraftClient.getInstance().getRenderTime() - startTime > animationLength){
                 return currentValue;
             }
-            double progress = ( (double)(Minecraft.getSystemTime() - startTime) ) / animationLength;
+            double progress = ( (double)(MinecraftClient.getInstance().getRenderTime() - startTime) ) / animationLength;
             return (float) (startValue - easeOutQuint( progress ) * (startValue - currentValue));
         }
 
