@@ -1,4 +1,4 @@
-package com.rebane2001.livemessage.mixin;
+package com.rebane2001.livemessage;
 
 import com.rebane2001.livemessage.LivemessageConfig;
 import com.rebane2001.livemessage.gui.LivemessageGui;

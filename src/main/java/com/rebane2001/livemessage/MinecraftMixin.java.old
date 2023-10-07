@@ -1,4 +1,4 @@
-package com.rebane2001.livemessage.mixin;
+package com.rebane2001.livemessage;
 
 import com.rebane2001.livemessage.EventHandler;
 import net.minecraft.client.Minecraft;
