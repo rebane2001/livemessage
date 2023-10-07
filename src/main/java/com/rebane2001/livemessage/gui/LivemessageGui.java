@@ -1,28 +1,25 @@
 package com.rebane2001.livemessage.gui;
 
-import com.google.gson.Gson;
-import com.rebane2001.livemessage.Livemessage;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.rebane2001.livemessage.LivemessageConfig;
-import com.rebane2001.livemessage.util.LivemessageUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import org.lwjgl.opengl.GL11;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
-import static com.rebane2001.livemessage.gui.GuiUtil.getMouse;
-
 public class LivemessageGui extends Screen {
 
-    public LivemessageGui() {
-        super(Text.of("Livemessage"));
+    private final Screen parent;
+
+    public LivemessageGui(Screen parent) {
+        super(Text.literal("Livemessage"));
+        this.parent = parent;
     }
 
     public static boolean buddiesLoaded = false;
@@ -112,6 +109,7 @@ public class LivemessageGui extends Screen {
          */
     }
 
+    @Override
     public void init() {
         // TODO: ???
         // Keyboard.enableRepeatEvents(true);
@@ -131,6 +129,8 @@ public class LivemessageGui extends Screen {
     public void close() {
         // TODO: ???
         // Keyboard.enableRepeatEvents(false);
+        if (client != null)
+            client.setScreen(parent);
     }
 
     // Use this to open a new window or highlight existing one
@@ -185,7 +185,8 @@ public class LivemessageGui extends Screen {
 
      */
 
-    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
         for (int i = liveWindows.size() - 1; i >= 0; i--) {
             LiveWindow liveWindow = liveWindows.get(i);
             if (liveWindow.mouseInWindow((int) (mouseX * scl), (int) (mouseY * scl))) {
@@ -199,17 +200,18 @@ public class LivemessageGui extends Screen {
             }
         }
         liveWindows.get(liveWindows.size() - 1).mouseClicked((int) (mouseX * scl), (int) (mouseY * scl), mouseButton);
-        super.mouseClicked(mouseX, mouseY, mouseButton);
+        return super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
-    protected void mouseReleased(int mouseX, int mouseY, int state) {
-        liveWindows.get(liveWindows.size() - 1).mouseReleased((int) (mouseX * scl), (int) (mouseY * scl), state);
-        super.mouseReleased(mouseX, mouseY, state);
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        liveWindows.get(liveWindows.size() - 1).mouseReleased((int) (mouseX * scl), (int) (mouseY * scl), button);
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
-    protected void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
-        liveWindows.get(liveWindows.size() - 1).mouseClickMove((int) (mouseX * scl), (int) (mouseY * scl), clickedMouseButton, timeSinceLastClick);
-    }
+    // protected void mouseClickMove(double mouseX, double mouseY, int clickedMouseButton, long timeSinceLastClick) {
+    //     liveWindows.get(liveWindows.size() - 1).mouseClickMove((int) (mouseX * scl), (int) (mouseY * scl), clickedMouseButton, timeSinceLastClick);
+    // }
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
@@ -218,7 +220,16 @@ public class LivemessageGui extends Screen {
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
+    @Override
+    public boolean shouldPause() {
+        return false;
+    }
+
     public static boolean newMessage(String username, String message, boolean sentByMe) {
+        // TODO: remove this lol
+        liveWindows.add(new LiveWindow());
+        liveWindows.get(0).x = 200;
+        liveWindows.get(0).y = 200;
         // TODO: reimplement
         // final UUID uuid = LiveProfileCache.getLiveprofileFromName(username).uuid;
         final UUID uuid = MinecraftClient.getInstance().player.getUuid();
@@ -276,9 +287,27 @@ public class LivemessageGui extends Screen {
     }
 
     @Override
+    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
+        // TODO: Turn this into a setting
+        // super.renderBackground(context, mouseX, mouseY, delta);
+    }
+
+    @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        super.render(context, mouseX, mouseY, delta);
         setScl();
+        // TODO: Make configurable and optional (-1 == scale with GUI?)
+        scl = MinecraftClient.getInstance().getWindow().getScaleFactor();
+        screenHeight = (int) (context.getScaledWindowHeight() * scl);
+        screenWidth = (int) (context.getScaledWindowWidth() * scl);
         float reverseGuiScale = (float) (1f / scl * 1);
+        context.getMatrices().push();
+        context.getMatrices().scale(reverseGuiScale, reverseGuiScale, reverseGuiScale);
+        for (LiveWindow liveWindow : liveWindows) {
+            liveWindow.preDrawWindow(context);
+        }
+        context.getMatrices().pop();
+        /*
         GL11.glPushMatrix();
         GL11.glDisable(GL11.GL_CULL_FACE);
         GL11.glEnable(GL11.GL_BLEND);
@@ -290,7 +319,6 @@ public class LivemessageGui extends Screen {
         }
         GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glDisable(GL11.GL_BLEND);
-        GL11.glPopMatrix();
-        super.render(context, mouseX, mouseY, delta);
+        GL11.glPopMatrix();*/
     }
 }

@@ -3,7 +3,7 @@
 	"package": "com.rebane2001.livemessage.mixin",
 	"compatibilityLevel": "JAVA_17",
 	"mixins": [
-		"ExampleMixin"
+		"ChatHudMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

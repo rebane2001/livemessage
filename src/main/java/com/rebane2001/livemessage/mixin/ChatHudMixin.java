@@ -4,6 +4,7 @@ import com.rebane2001.livemessage.Livemessage;
 import com.rebane2001.livemessage.LivemessageConfig;
 import com.rebane2001.livemessage.gui.LivemessageGui;
 import com.rebane2001.livemessage.util.LivemessageUtil;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.hud.ChatHud;
 import net.minecraft.client.gui.hud.MessageIndicator;
 import net.minecraft.network.message.MessageSignatureData;

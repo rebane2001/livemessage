@@ -18,6 +18,11 @@ public class GuiUtil {
         return (a > 0) ? a : 0xFF;
     }
 
+    public static int getColorNonZeroAlpha(int color){
+        int a = (color>>24)&0xFF;
+        return (a > 0) ? color : color + (0xFF<<24);
+    }
+
     public static int hslColor(float h, float s, float l) {
         float q, p, r, g, b;
 

@@ -17,6 +17,9 @@ import static com.rebane2001.livemessage.gui.LivemessageGui.scl;
 
 public class LiveWindow {
     public static int titlebarHeight = 17;
+
+    // this isn't ideal
+    public DrawContext drawContext;
     public int x;
     public int y;
     public int w = 400;
@@ -127,6 +130,7 @@ public class LiveWindow {
         if (keyCode == GLFW.GLFW_KEY_TAB && LivemessageGui.liveWindows.size() > 1) {
             // TODO: Add check back in
             // if (Keyboard.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
+            // Screen.hasShiftDown()
             if (false) {
                 LiveWindow tempWindow = LivemessageGui.liveWindows.get(0);
                 LivemessageGui.liveWindows.remove(0);
@@ -190,7 +194,7 @@ public class LiveWindow {
     public void handleMouseDrag(){
         if (dragging || resizing){
             final int mouseX = (int) (getMouse().getX() / LivemessageConfig.guiSettings.guiScale);
-            final int mouseY = (int) (LivemessageGui.screenHeight - (getMouse().getY() / LivemessageConfig.guiSettings.guiScale));
+            final int mouseY = (int) (getMouse().getY() / LivemessageConfig.guiSettings.guiScale);
             if (dragging) {
                 x = Math.max(0, mouseX - dragX);
                 x -= x % scl;
@@ -217,7 +221,34 @@ public class LiveWindow {
         mouseReleased(lastMouseX, lastMouseY, 0);
     }
 
-    public void preDrawWindow() {}
+    public void preDrawWindow(DrawContext context) {
+        handleMouseDrag();
+        drawContext = context;
+        //if (fontRenderer == null)
+        //    fontRenderer = Minecraft.getMinecraft().fontRenderer;
+        // if window is off-screen, move it back
+        if (x + w > LivemessageGui.screenWidth)
+            x = LivemessageGui.screenWidth - w;
+        if (y + h > LivemessageGui.screenHeight)
+            y = LivemessageGui.screenHeight - h;
+        if (x < 0)
+            x = 0;
+        if (y < 0)
+            y = 0;
+        // if window is too big to fit on-screen, make it smaller
+        if (x + w > LivemessageGui.screenWidth)
+            w = Math.max(LivemessageGui.screenWidth, minw);
+        if (y + h > LivemessageGui.screenHeight)
+            h = Math.max(LivemessageGui.screenHeight, minh);
+
+        context.getMatrices().push();
+        context.getMatrices().translate(x, y, 0);
+        int bgColor = getRGB(32, 32, 32);
+        int fgColor = active ? primaryColor : getRGB(128, 128, 128);
+        drawWindow(bgColor, fgColor);
+        context.getMatrices().pop();
+
+    }
     /* TODO: Re-enable
     public void preDrawWindow() {
         handleMouseDrag();
@@ -306,6 +337,8 @@ public class LiveWindow {
     }
 
     public void drawRect(int x, int y, int w, int h, int color) {
+        drawContext.fill(x, y, x+w, y+h, getColorNonZeroAlpha(color));
+        /* TODO: Delete if ok
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glBegin(GL11.GL_TRIANGLES);
         GL11.glColor4f(getRed(color) / 255f, getGreen(color) / 255f, getBlue(color) / 255f, getAlphaNonZero(color) / 255f);
@@ -320,9 +353,12 @@ public class LiveWindow {
         GL11.glEnd();
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glColor4f(1,1,1,1);
+         */
     }
 
     public void drawRectHalf(int x, int y, int w, int h, boolean top, int color) {
+        drawContext.fill(x, y, x+w, y+h, getColorNonZeroAlpha(color));
+        /* TODO: Delete if ok and add triangle support
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glColor4f(getRed(color) / 255f, getGreen(color) / 255f, getBlue(color) / 255f, getAlphaNonZero(color) / 255f);
         if (top) {
@@ -340,9 +376,12 @@ public class LiveWindow {
         }
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glColor4f(1,1,1,1);
+         */
     }
 
     public void drawRectOutline(int x, int y, int w, int h, int color) {
+        drawContext.drawBorder(x, y, x+w, y+h, getColorNonZeroAlpha(color));
+        /*
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glBegin(GL11.GL_LINE_LOOP);
         GL11.glColor4f(getRed(color) / 255f, getGreen(color) / 255f, getBlue(color) / 255f, getAlphaNonZero(color) / 255f);
@@ -353,6 +392,7 @@ public class LiveWindow {
         GL11.glEnd();
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glColor4f(1,1,1,1);
+         */
     }
 
 }
