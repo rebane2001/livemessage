@@ -111,6 +111,12 @@ public class LivemessageGui extends Screen {
 
     @Override
     public void init() {
+        // TODO: remove this lol
+        if (liveWindows.size() < 1) {
+            liveWindows.add(new LiveWindow());
+            liveWindows.get(0).x = 200;
+            liveWindows.get(0).y = 200;
+        }
         // TODO: ???
         // Keyboard.enableRepeatEvents(true);
 
@@ -226,10 +232,6 @@ public class LivemessageGui extends Screen {
     }
 
     public static boolean newMessage(String username, String message, boolean sentByMe) {
-        // TODO: remove this lol
-        liveWindows.add(new LiveWindow());
-        liveWindows.get(0).x = 200;
-        liveWindows.get(0).y = 200;
         // TODO: reimplement
         // final UUID uuid = LiveProfileCache.getLiveprofileFromName(username).uuid;
         final UUID uuid = MinecraftClient.getInstance().player.getUuid();

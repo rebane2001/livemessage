@@ -1,6 +1,6 @@
 package com.rebane2001.livemessage;
 
-import com.rebane2001.livemessage.EventHandler;
+import com.rebane2001.livemessage.LivemessageClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.util.math.RayTraceResult;

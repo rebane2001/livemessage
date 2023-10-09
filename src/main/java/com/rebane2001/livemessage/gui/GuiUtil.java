@@ -102,10 +102,6 @@ public class GuiUtil {
         return hue;
     }
 
-    // TODO: Temporary?
-    public static TextRenderer getTextRenderer() {
-        return MinecraftClient.getInstance().textRenderer;
-    }
     public static Mouse getMouse() {
         return MinecraftClient.getInstance().mouse;
     }
