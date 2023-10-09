@@ -79,7 +79,7 @@ public class LiveSkinUtil {
             if (!this.playerTexturesLoaded)
             {
                 this.playerTexturesLoaded = true;
-                MinecraftClient.getInstance().getSkinProvider().fetchSkinTextures(this.gameProfile).thenAccept((skinTextures) -> {
+                MinecraftClient.getInstance().getSkinProvider().fetchSkinTextures(this.gameProfile).thenAccept(skinTextures -> {
                     LiveSkinUtil.this.playerTextures.put(SKIN, skinTextures.texture());
                     LiveSkinUtil.this.playerTextures.put(CAPE, skinTextures.capeTexture());
                     LiveSkinUtil.this.playerTextures.put(ELYTRA, skinTextures.elytraTexture());

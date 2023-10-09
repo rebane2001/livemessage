@@ -23,6 +23,10 @@ public class GuiUtil {
         return (a > 0) ? color : color + (0xFF<<24);
     }
 
+    public static int getColorWithAlpha(int color, int alpha) {
+        return color + (alpha<<24);
+    }
+
     public static int hslColor(float h, float s, float l) {
         float q, p, r, g, b;
 

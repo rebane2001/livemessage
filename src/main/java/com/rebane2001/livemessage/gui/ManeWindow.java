@@ -43,12 +43,10 @@ public class ManeWindow extends LiveWindow {
 
     ManeWindow() {
         mc = MinecraftClient.getInstance();
-        liveProfile = new LiveProfile();
         ClientPlayerEntity player = mc.player;
         // TODO: Better handing of this
         if (player == null) return;
-        liveProfile.username = player.getGameProfile().getName();
-        liveProfile.uuid = player.getUuid();
+        liveProfile = new LiveProfile(player.getUuid(), player.getGameProfile().getName());
         liveProfileHeader = new LiveProfileHeader(this, liveProfile);
         closeButton = false;
 

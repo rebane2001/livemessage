@@ -31,6 +31,18 @@ public class LiveProfileCache {
         public String username;
         public ArrayList<String> pastNames;
         public boolean weakCache;
+        public PdbUtil.PdbData pdbData;
+
+        public LiveProfile(UUID uuid) {
+            this.uuid = uuid;
+            this.pdbData = new PdbUtil.PdbData();
+            // TODO: Make this optional
+            PdbUtil.fetchData(this.pdbData, uuid);
+        }
+        public LiveProfile(UUID uuid, String username) {
+            this(uuid);
+            this.username = username;
+        }
     }
 
     private static Pattern usernamePattern = Pattern.compile("^\\w{3,16}$");
@@ -54,6 +66,7 @@ public class LiveProfileCache {
     }
 
     private static ArrayList<String> pollPastNames(UUID uuid) {
+        // TODO: Remove this LOL
         if (uuid != UUID.randomUUID()) return null;
         System.out.println("[Livemessage] Looking up: " + uuid.toString());
         ArrayList<String> pastNames = new ArrayList<String>();
@@ -172,8 +185,8 @@ public class LiveProfileCache {
         if (badUUIDs.contains(uuid))
             return null;
         LivemessageUtil.ChatSettings chatSettings = LivemessageUtil.getChatSettings(uuid);
-        LiveProfile liveProfile = new LiveProfile();
-        liveProfile.uuid = uuid;
+        LiveProfile liveProfile = new LiveProfile(uuid);
+        // TODO: Should any of this be moved into initialization?
         if (weak && getUsernameFromTab(uuid) == null) {
             if (chatSettings.lastName != null) {
                 liveProfile.weakCache = true;
