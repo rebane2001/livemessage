@@ -25,9 +25,7 @@ public class ManeWindow extends LiveWindow {
     LiveProfile liveProfile;
     MinecraftClient mc;
 
-    LiveSkinUtil liveSkinUtil;
-    GuiUtil.QuintAnimation hatFade = new GuiUtil.QuintAnimation(300, 1f);
-    GuiUtil.QuintAnimation fullSkinAnim = new GuiUtil.QuintAnimation(600, 0f);
+    LiveProfileHeader liveProfileHeader;
 
     final int scrollBarWidth = 10;
     int scrollBarHeight = 50;
@@ -51,7 +49,7 @@ public class ManeWindow extends LiveWindow {
         if (player == null) return;
         liveProfile.username = player.getGameProfile().getName();
         liveProfile.uuid = player.getUuid();
-        liveSkinUtil = new LiveSkinUtil(liveProfile.uuid);
+        liveProfileHeader = new LiveProfileHeader(this, liveProfile);
         closeButton = false;
 
         // TODO: reimplement
@@ -84,6 +82,7 @@ public class ManeWindow extends LiveWindow {
         liveButtons.add(new LiveButton(1, 14, titlebarHeight + 3 + 13, 11, 11, true, "", "Mark all as read", LivemessageGui::markAllAsRead));
     }
 
+    /*
     private void drawProfilePic(int x, int y) {
 
         boolean removeHat = (lastMouseX > this.x + x && lastMouseX < this.x + x + 32 && lastMouseY > this.y + y && lastMouseY < this.y + y + 32);
@@ -105,7 +104,8 @@ public class ManeWindow extends LiveWindow {
                 32, 32,
                 hatFade.animate(removeHat ? 0F : 1F)
         );
-    }
+    }*/
+
     public void keyTyped(char typedChar, int keyCode) {
         // TODO: Reimplement
         /*
@@ -370,10 +370,11 @@ public class ManeWindow extends LiveWindow {
             drawText("Search...", 8, this.h - footer - 2, getSingleRGB(64));
          */
 
-        drawText(liveProfile.username, 42, titlebarHeight + 5, getSingleRGB(255));
-        drawText("online", 42, titlebarHeight + 5 + 11, getSingleRGB(128));
-        drawRect(3, titlebarHeight + 3, 36, 36, getRGB(60, 148, 100));
-        drawProfilePic(5, titlebarHeight + 5);
+        // drawText(liveProfile.username, 42, titlebarHeight + 5, getSingleRGB(255));
+        // drawText("online", 42, titlebarHeight + 5 + 11, getSingleRGB(128));
+        // drawRect(3, titlebarHeight + 3, 36, 36, getRGB(60, 148, 100));
+        // drawProfilePic(5, titlebarHeight + 5);
+        liveProfileHeader.drawProfileHeader(5, titlebarHeight + 5);
 
         // Tooltips
         liveButtons.forEach(LiveButton::drawTooltips);
