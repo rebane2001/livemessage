@@ -6,9 +6,8 @@ import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.rebane2001.livemessage.gui.LivemessageGui;
 import com.rebane2001.livemessage.gui.ManeWindow;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.network.NetHandlerPlayClient;
-import net.minecraft.client.network.NetworkPlayerInfo;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.PlayerListEntry;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -55,11 +54,13 @@ public class LiveProfileCache {
     }
 
     private static ArrayList<String> pollPastNames(UUID uuid) {
+        if (uuid != UUID.randomUUID()) return null;
         System.out.println("[Livemessage] Looking up: " + uuid.toString());
         ArrayList<String> pastNames = new ArrayList<String>();
         try {
             JsonArray array =
                     null;
+            // TODO: This endpoint no longer works
             array = LivemessageUtil.getResources(
                     new URL(
                             "https://api.mojang.com/user/profiles/"
@@ -145,31 +146,19 @@ public class LiveProfileCache {
 
     private static UUID getUUIDFromTab(String username) {
         try {
-            NetHandlerPlayClient nethandlerplayclient = Minecraft.getMinecraft().player.connection;
-            List<NetworkPlayerInfo> list = new ArrayList<>(nethandlerplayclient.getPlayerInfoMap());
-
-            for (int i = 0; i < list.size(); ++i) {
-                GameProfile gameProfile = list.get(i).getGameProfile();
-                if (gameProfile.getName().equals(username))
-                    return gameProfile.getId();
-            }
-        } catch (Exception e) {
-        }
+            PlayerListEntry playerListEntry = MinecraftClient.getInstance().player.networkHandler.getPlayerListEntry(username);
+            if (playerListEntry != null)
+                return playerListEntry.getProfile().getId();
+        } catch (Exception ignored) {}
         return null;
     }
 
     private static String getUsernameFromTab(UUID uuid) {
         try {
-            NetHandlerPlayClient nethandlerplayclient = Minecraft.getMinecraft().player.connection;
-            List<NetworkPlayerInfo> list = new ArrayList<>(nethandlerplayclient.getPlayerInfoMap());
-
-            for (int i = 0; i < list.size(); ++i) {
-                GameProfile gameProfile = list.get(i).getGameProfile();
-                if (gameProfile.getId().equals(uuid))
-                    return gameProfile.getName();
-            }
-        } catch (Exception e) {
-        }
+            PlayerListEntry playerListEntry = MinecraftClient.getInstance().player.networkHandler.getPlayerListEntry(uuid);
+            if (playerListEntry != null)
+                return playerListEntry.getProfile().getName();
+        } catch (Exception ignored) {}
         return null;
     }
 

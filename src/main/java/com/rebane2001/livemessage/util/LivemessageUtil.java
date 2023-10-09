@@ -1,8 +1,17 @@
 package com.rebane2001.livemessage.util;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import net.minecraft.client.MinecraftClient;
+
+import javax.net.ssl.HttpsURLConnection;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.URL;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class LivemessageUtil {
@@ -24,4 +33,143 @@ public class LivemessageUtil {
                     Pattern.compile("^You whisper to (\\w{3,16}): (.*)")
             )
     );
+
+    public static class ChatSettings{
+        public boolean isFriend = false;
+        public boolean isBlocked = false;
+        public int customColor = 0;
+        public String lastName;
+    }
+
+    // TODO: reimplement
+    /**
+     * Might not be the place for this method, but it works
+     */
+    /*
+    public static void loadPatterns() {
+        BufferedReader reader;
+        try {
+            reader = new BufferedReader(new FileReader(
+                    String.valueOf(Livemessage.modFolder.resolve("patterns/toPatterns.txt"))));
+            String line = reader.readLine();
+            while (line != null) {
+                try {
+                    TO_PATTERNS.add(Pattern.compile(line));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                line = reader.readLine();
+            }
+            reader.close();
+
+            reader = new BufferedReader(new FileReader(
+                    String.valueOf(Livemessage.modFolder.resolve("patterns/fromPatterns.txt"))));
+            line = reader.readLine();
+            while (line != null) {
+                try {
+                    FROM_PATTERNS.add(Pattern.compile(line));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                line = reader.readLine();
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+     */
+
+    // TODO: reimplement
+    /*
+    public static ChatSettings getChatSettings(UUID uuid){
+        try {
+            Gson gson = new Gson();
+            JsonReader reader = new JsonReader(
+                    new FileReader(
+                            String.valueOf(Livemessage.modFolder.resolve("settings/" + uuid.toString() + ".json"))
+                    )
+            );
+            return gson.fromJson(reader, ChatSettings.class);
+        } catch (Exception e) {
+            //TODO: Add better error handling
+            //e.printStackTrace();
+        }
+        return new ChatSettings();
+    }
+
+
+    public static void saveChatSettings(UUID uuid, ChatSettings chatSettings){
+        try (Writer writer = new FileWriter(
+                String.valueOf(Livemessage.modFolder.resolve("settings/" + uuid.toString() + ".json"))
+        )) {
+            Gson gson = new GsonBuilder().create();
+            gson.toJson(chatSettings, writer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+     */
+
+    // TODO: Remove temporary NOPs
+    public static ChatSettings getChatSettings(UUID uuid){
+        return new ChatSettings();
+    }
+    public static void saveChatSettings(UUID uuid, ChatSettings chatSettings){}
+
+    public static JsonElement getResources(URL url, String request) throws IOException {
+        return getResources(url, request, null);
+    }
+
+    public static JsonElement getResources(URL url, String request, JsonElement element)
+            throws IOException {
+        Gson GSON = new Gson();
+        JsonParser PARSER = new JsonParser();
+        JsonElement data;
+        HttpsURLConnection connection = null;
+        try {
+            connection = (HttpsURLConnection) url.openConnection();
+            connection.setDoOutput(true);
+            connection.setRequestMethod(request);
+            connection.setRequestProperty("Content-Type", "application/json");
+
+            if (element != null) {
+                DataOutputStream output = new DataOutputStream(connection.getOutputStream());
+                output.writeBytes(GSON.toJson(element));
+                output.close();
+            }
+
+            Scanner scanner = new Scanner(connection.getInputStream());
+            StringBuilder builder = new StringBuilder();
+            while (scanner.hasNextLine()) {
+                builder.append(scanner.nextLine());
+                builder.append('\n');
+            }
+            scanner.close();
+
+            String json = builder.toString();
+            data = PARSER.parse(json);
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+        return data;
+    }
+
+
+
+    /**
+     * Is this player online?
+     */
+    public static boolean isPlayerOnline(UUID uuid) {
+        try {
+            if (MinecraftClient.getInstance().player == null) return false;
+            return MinecraftClient.getInstance().player.networkHandler.getPlayerListEntry(uuid) != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

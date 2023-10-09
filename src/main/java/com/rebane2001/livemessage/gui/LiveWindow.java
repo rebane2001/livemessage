@@ -1,14 +1,15 @@
 package com.rebane2001.livemessage.gui;
 
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.rebane2001.livemessage.Livemessage;
 import com.rebane2001.livemessage.LivemessageConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.Mouse;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.render.*;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.MathHelper;
 import org.joml.Matrix4f;
@@ -197,9 +198,11 @@ public class LiveWindow {
      */
 
     public void handleMouseDrag(){
+        final int mouseX = (int) (getMouse().getX() / LivemessageConfig.guiSettings.guiScale);
+        final int mouseY = (int) (getMouse().getY() / LivemessageConfig.guiSettings.guiScale);
+        // TODO: Do we want this here?
+        mouseMove(mouseX, mouseY);
         if (dragging || resizing){
-            final int mouseX = (int) (getMouse().getX() / LivemessageConfig.guiSettings.guiScale);
-            final int mouseY = (int) (getMouse().getY() / LivemessageConfig.guiSettings.guiScale);
             if (dragging) {
                 x = Math.max(0, mouseX - dragX);
                 x -= x % scl;
@@ -252,7 +255,6 @@ public class LiveWindow {
             double time = (System.currentTimeMillis() - animateInStart) / 1000d / 0.4d;
             double progress = easeOutQuad(time);
             if (time > 1) {
-                progress = 1;
                 animateIn = false;
             } else {
                 context.setShaderColor(1, 1, 1, (float) progress);
@@ -274,9 +276,6 @@ public class LiveWindow {
         if (animateIn) {
             context.setShaderColor(1,1,1,1);
             context.getMatrices().pop();
-        } else {
-            animateInStart = System.currentTimeMillis();
-            animateIn = true;
         }
 
         context.getMatrices().pop();
@@ -308,6 +307,35 @@ public class LiveWindow {
 
     public int getStringWidth(String text) {
         return textRenderer.getWidth(text);
+    }
+
+    public void drawTextureTrans(Identifier texture, float x1, float y1, float u, float v, float width, float height, float alpha) {
+        float textureWidth = 256;
+        float textureHeight = 256;
+        float x2 = x1 + width;
+        float y2 = y1 + height;
+        float z = 0;
+        float u1 = (u + 0.0F) / textureWidth;
+        float u2 = (u + width) / textureWidth;
+        float v1 = (v + 0.0F) / textureHeight;
+        float v2 = (v + height) / textureHeight;
+
+        float red = 1;
+        float green = 1;
+        float blue = 1;
+
+        RenderSystem.setShaderTexture(0, texture);
+        RenderSystem.setShader(GameRenderer::getPositionColorTexProgram);
+        RenderSystem.enableBlend();
+        Matrix4f matrix4f = drawContext.getMatrices().peek().getPositionMatrix();
+        BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
+        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE);
+        bufferBuilder.vertex(matrix4f, x1, y1, z).color(red, green, blue, alpha).texture(u1, v1).next();
+        bufferBuilder.vertex(matrix4f, x1, y2, z).color(red, green, blue, alpha).texture(u1, v2).next();
+        bufferBuilder.vertex(matrix4f, x2, y2, z).color(red, green, blue, alpha).texture(u2, v2).next();
+        bufferBuilder.vertex(matrix4f, x2, y1, z).color(red, green, blue, alpha).texture(u2, v1).next();
+        BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
+        RenderSystem.disableBlend();
     }
     public void drawText(String text, int x, int y, int color) {
         drawText(text, x, y, color, false);

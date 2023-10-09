@@ -166,18 +166,17 @@ public class GuiUtil {
             if (val != currentValue){
                 startValue = getState();
                 currentValue = val;
-                // TODO: Make sure getRenderTime is okay to use
-                startTime = MinecraftClient.getInstance().getRenderTime();
+                startTime = System.currentTimeMillis();
             }
             return getState();
         }
 
         // Sets animationValue to correct time
         public float getState() {
-            if (MinecraftClient.getInstance().getRenderTime() - startTime > animationLength){
+            if (System.currentTimeMillis() - startTime > animationLength){
                 return currentValue;
             }
-            double progress = ( (double)(MinecraftClient.getInstance().getRenderTime() - startTime) ) / animationLength;
+            double progress = ( (double)(System.currentTimeMillis() - startTime) ) / animationLength;
             return (float) (startValue - easeOutQuint( progress ) * (startValue - currentValue));
         }
 

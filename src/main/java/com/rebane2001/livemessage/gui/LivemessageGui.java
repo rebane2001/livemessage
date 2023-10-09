@@ -111,24 +111,12 @@ public class LivemessageGui extends Screen {
 
     @Override
     public void init() {
-        // TODO: remove this lol
-        if (liveWindows.size() < 1) {
-            liveWindows.add(new LiveWindow());
-            liveWindows.get(0).x = 200;
-            liveWindows.get(0).y = 200;
-        }
-        // TODO: ???
-        // Keyboard.enableRepeatEvents(true);
-
-        // this.buttonList.clear();
-
         setScl();
 
         loadBuddies();
 
-        // TODO: reimplement manewindow
-        // if (liveWindows.isEmpty())
-        //     liveWindows.add(new ManeWindow());
+        if (liveWindows.isEmpty())
+            liveWindows.add(new ManeWindow());
     }
 
     @Override
@@ -309,18 +297,5 @@ public class LivemessageGui extends Screen {
             liveWindow.preDrawWindow(context);
         }
         context.getMatrices().pop();
-        /*
-        GL11.glPushMatrix();
-        GL11.glDisable(GL11.GL_CULL_FACE);
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glShadeModel(GL11.GL_SMOOTH);
-        GL11.glLineWidth(1);
-        for (LiveWindow liveWindow : liveWindows) {
-            liveWindow.preDrawWindow();
-        }
-        GL11.glEnable(GL11.GL_CULL_FACE);
-        GL11.glDisable(GL11.GL_BLEND);
-        GL11.glPopMatrix();*/
     }
 }
