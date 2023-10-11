@@ -35,14 +35,11 @@ public class ChatWindow extends LiveWindow {
     //protected GuiTextField inputField;
     public ConfigUtil.ChatSettings chatSettings;
 
-    final int chatBoxY = titlebarHeight + 44;
-    final int chatBoxX = 5;
-    final int chatBoxSize = 13;
+    final static int chatBoxY = titlebarHeight + 44;
+    final static int chatBoxX = 5;
+    final static int chatBoxSize = 13;
 
     List<ChatMessage> chatHistory = new ArrayList<>();
-
-    QuintAnimation hatFade = new QuintAnimation(300, 1f);
-    QuintAnimation fullSkinAnim = new QuintAnimation(600, 0f);
 
     LiveProfileHeader liveProfileHeader;
 

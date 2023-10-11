@@ -51,7 +51,6 @@ public class LiveWindow {
 
     boolean animateIn = true;
     long animateInStart;
-
     LiveWindow() {
         x = (int) (Math.random() * (LivemessageGui.screenWidth - w));
         y = (int) (Math.random() * (LivemessageGui.screenHeight - h));
@@ -59,6 +58,7 @@ public class LiveWindow {
         if (LivemessageGui.liveWindows.size() > 0)
             LivemessageGui.liveWindows.get(LivemessageGui.liveWindows.size() - 1).deactivateWindow();
         animateInStart = System.currentTimeMillis();
+        textRenderer = MinecraftClient.getInstance().textRenderer;
     }
 
     List<LiveButton> liveButtons = new ArrayList<>();
@@ -243,6 +243,7 @@ public class LiveWindow {
     }
 
     public void drawTextureTrans(Identifier texture, float x1, float y1, float u, float v, float width, float height, float alpha) {
+        if (drawContext == null) return;
         float textureWidth = 256;
         float textureHeight = 256;
         float x2 = x1 + width;
@@ -275,14 +276,17 @@ public class LiveWindow {
     }
 
     public void drawText(String text, int x, int y, int color, boolean shadow) {
+        if (drawContext == null || textRenderer == null) return;
         drawContext.drawText(textRenderer, text, x, y, color, shadow);
     }
 
     public void drawRect(int x, int y, int w, int h, int color) {
+        if (drawContext == null) return;
         drawContext.fill(x, y, x+w, y+h, getColorNonZeroAlpha(color));
     }
 
     public void drawRectHalf(int x1, int y1, int w1, int h1, boolean top, int color1) {
+        if (drawContext == null) return;
         int color2 = getColorNonZeroAlpha(color1);
         int z = 0;
         int x2 = x1+w1;
@@ -319,6 +323,7 @@ public class LiveWindow {
     }
 
     public void drawRectOutline(int x, int y, int w, int h, int color) {
+        if (drawContext == null) return;
         drawContext.drawBorder(x, y, x+w, y+h, getColorNonZeroAlpha(color));
     }
 

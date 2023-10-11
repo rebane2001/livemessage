@@ -30,7 +30,7 @@ public class LivemessageGui extends Screen {
     public static List<UUID> blocked = new ArrayList<>();
     public static Map<UUID, Integer> unreadMessages = new HashMap<>();
 
-    public static List<LiveWindow> liveWindows = new ArrayList<>();
+    public final static List<LiveWindow> liveWindows = new ArrayList<>();
 
     public static double sclOrig = 1;
     public static double scl = 1;
@@ -53,7 +53,13 @@ public class LivemessageGui extends Screen {
      * Loads users into respective lists.
      */
     public static void loadBuddies() {
-        ConfigUtil.loadBuddies(chats, friends, blocked);
+        CompletableFuture
+                .supplyAsync(ConfigUtil::loadBuddies)
+                .thenAccept(buddyLists -> {
+                    chats = buddyLists[0];
+                    friends = buddyLists[1];
+                    blocked = buddyLists[2];
+                });
     }
 
     /**
@@ -117,6 +123,7 @@ public class LivemessageGui extends Screen {
         }
         // If existing window didn't exist, add a new one
         loadingSomething++;
+        liveWindows.add(new LoadingWindow(uuid));
         CompletableFuture
                 .runAsync(() -> {
                     // Do this in the background so we less laggy :)
@@ -135,7 +142,16 @@ public class LivemessageGui extends Screen {
     // Safe chatwindow adding
     private static void addChatWindow(ChatWindow chatWindow) {
         if (chatWindow.valid) {
-            liveWindows.add(chatWindow);
+            synchronized (liveWindows) {
+                liveWindows.add(chatWindow);
+                Optional<LiveWindow> loadingWindow = LivemessageGui.liveWindows.stream().filter(it -> it instanceof LoadingWindow && ((LoadingWindow)it).uuid.equals(chatWindow.liveProfile.uuid)).findFirst();
+                if (loadingWindow.isPresent()) {
+                    chatWindow.x = loadingWindow.get().x;
+                    chatWindow.y = loadingWindow.get().y;
+                    chatWindow.animateInStart = loadingWindow.get().animateInStart;
+                }
+                LivemessageGui.liveWindows.removeIf(it -> it instanceof LoadingWindow && ((LoadingWindow)it).uuid.equals(chatWindow.liveProfile.uuid));
+            }
         } else {
             liveWindows.get(liveWindows.size() - 1).activateWindow();
         }
@@ -261,8 +277,10 @@ public class LivemessageGui extends Screen {
         float reverseGuiScale = (float) (1f / scl * 1);
         context.getMatrices().push();
         context.getMatrices().scale(reverseGuiScale, reverseGuiScale, reverseGuiScale);
-        for (LiveWindow liveWindow : liveWindows) {
-            liveWindow.preDrawWindow(context);
+        synchronized (liveWindows) {
+            for (LiveWindow liveWindow : liveWindows) {
+                liveWindow.preDrawWindow(context);
+            }
         }
         context.getMatrices().pop();
     }

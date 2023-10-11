@@ -9,11 +9,11 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.nio.file.StandardCopyOption;
+import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class ConfigUtil {
     public static Path modFolder;
@@ -63,7 +63,12 @@ public class ConfigUtil {
             int lineNumber = 1;
             while (line != null) {
                 try {
-                    chatHistory.add(gson.fromJson(line, ChatWindow.ChatMessage.class));
+                    ChatWindow.ChatMessage chatMessage = gson.fromJson(line, ChatWindow.ChatMessage.class);
+                    if (chatMessage.message != null) {
+                        chatHistory.add(chatMessage);
+                    } else {
+                        Livemessage.LOGGER.error("No message on line " + lineNumber + " of chat history with " + uuid);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     Livemessage.LOGGER.error("Error loading line " + lineNumber + " of chat history with " + uuid);
@@ -79,8 +84,28 @@ public class ConfigUtil {
         }
     }
 
+    public static void backupChatHistory(UUID uuid) {
+        File chatHistoryFile = new File(getModPath("messages/" + uuid + ".jsonl"));
+        File chatHistoryBackup = new File(getModPath("backups/" + uuid + ".jsonl"));
+        if (!chatHistoryFile.exists()) return;
+        try {
+        if (chatHistoryBackup.exists()) {
+            if (Files.size(chatHistoryFile.toPath()) < Files.size(chatHistoryBackup.toPath())) {
+                Livemessage.LOGGER.error("The backup for " + uuid + "'s chat history is bigger than the current file, this might indicate corruption or data loss. Renaming the old backup just in case.");
+                if (!chatHistoryBackup.renameTo(new File(getModPath("backups/_restored-" + (System.currentTimeMillis()/1000L) + "-" + uuid + ".jsonl"))))
+                    Livemessage.LOGGER.error("Couldn't rename the old backup oh no");
+            }
+        }
+            Files.copy(chatHistoryFile.toPath(), chatHistoryBackup.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Livemessage.LOGGER.error("Couldn't backup chat history for " + uuid);
+        }
+    }
+
     public static void appendChatHistory(UUID uuid, String message, boolean sentByMe) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(getModPath("messages/" + uuid.toString() + ".jsonl"), true))) {
+        backupChatHistory(uuid);
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(getModPath("messages/" + uuid + ".jsonl"), true))) {
             Gson gson = new Gson();
             ClientPlayerEntity player = MinecraftClient.getInstance().player;
             bw.write(gson.toJson(new ChatWindow.ChatMessage(message, sentByMe, System.currentTimeMillis(), player != null ? player.getUuid() : null)));
@@ -125,10 +150,10 @@ public class ConfigUtil {
         }
     }
 
-    public static void loadBuddies(List<UUID> chats, List<UUID> friends, List<UUID> blocked) {
-        friends.clear();
-        chats.clear();
-        blocked.clear();
+    public static ArrayList[] loadBuddies() {
+        ArrayList<UUID> chats = new ArrayList<>();
+        ArrayList<UUID> friends = new ArrayList<>();
+        ArrayList<UUID> blocked = new ArrayList<>();
 
         File folder;
         folder = new File(getModPath("settings"));
@@ -156,5 +181,7 @@ public class ConfigUtil {
         Collections.sort(friends);
         Collections.sort(chats);
         Collections.sort(blocked);
+
+        return new ArrayList[]{ chats, friends, blocked };
     }
 }
