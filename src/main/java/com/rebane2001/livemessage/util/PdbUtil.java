@@ -46,6 +46,7 @@ public class PdbUtil {
     public static class PdbData {
         public String pronoun;
         public String decoration;
+        public boolean fresh = false;
     }
 
     public static void fetchData(PdbData pdbData, UUID uuid) {
@@ -54,6 +55,9 @@ public class PdbUtil {
                     try {
                         Livemessage.LOGGER.warn("Looking up pronouns!");
                         JsonElement jsonElement = LivemessageUtil.getResources(new URL("https://pronoundb.org/api/v2/lookup?platform=minecraft&ids=" + uuid.toString()), "GET");
+                        pdbData.decoration = null;
+                        pdbData.pronoun = null;
+                        pdbData.fresh = true;
                         if (jsonElement.getAsJsonObject().isEmpty()) return;
                         Collection<JsonElement> values = jsonElement.getAsJsonObject().asMap().values();
                         if (values.isEmpty()) return;

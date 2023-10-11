@@ -73,11 +73,11 @@ public class ManeWindow extends LiveWindow {
      * Initializes buttons.
      */
     public void initButtons() {
-        liveButtons.add(new LiveButton(0, 14, titlebarHeight + 3, 11, 11, true, "", "Settings", () -> {
+        liveButtons.add(new LiveButton(this, 0, 14, titlebarHeight + 3, 11, 11, true, "", "Settings", () -> {
             // TODO: Implement settings
             // Minecraft.getMinecraft().displayGuiScreen(new GuiConfig(Minecraft.getMinecraft().currentScreen, Livemessage.MOD_ID, false, false, "Livemessage Settings", LivemessageConfig.class));
         }));
-        liveButtons.add(new LiveButton(1, 14, titlebarHeight + 3 + 13, 11, 11, true, "", "Mark all as read", LivemessageGui::markAllAsRead));
+        liveButtons.add(new LiveButton(this,1, 14, titlebarHeight + 3 + 13, 11, 11, true, "", "Mark all as read", LivemessageGui::markAllAsRead));
     }
 
     /*

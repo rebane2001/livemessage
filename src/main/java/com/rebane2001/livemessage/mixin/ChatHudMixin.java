@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 
 @Mixin(ChatHud.class)
 public class ChatHudMixin {
-	private Pattern timestampPattern = Pattern.compile("^(<|\\[|\\()[0-9][0-9]:[0-9][0-9](:[0-9][0-9])? ?(AM|PM)?(>|\\]|\\)) ?");
+	private final Pattern timestampPattern = Pattern.compile("^([<\\[(])\\d\\d:\\d\\d(:\\d\\d)? ?(AM|PM)?([>\\])]) ?");
 
 	@Inject(at = @At("HEAD"), method = "addMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/message/MessageSignatureData;ILnet/minecraft/client/gui/hud/MessageIndicator;Z)V", cancellable = true)
 	private void addMessage(Text message, @Nullable MessageSignatureData signature, int ticks, @Nullable MessageIndicator indicator, boolean refresh, CallbackInfo ci) {

@@ -63,61 +63,6 @@ public class LiveWindow {
 
     List<LiveButton> liveButtons = new ArrayList<>();
 
-    class LiveButton {
-        public int id;
-        public int bx;
-        public int by;
-        public int bw;
-        public int bh;
-        public boolean negativeX;
-        public String btnText;
-        public String tooltipText;
-        public int idleColor = getSingleRGB(64);
-        public int hoverColor = getSingleRGB(96);
-        public int textColor = getSingleRGB(255);
-        public Runnable action;
-
-        LiveButton(int id, int x, int y, int w, int h, boolean negativeX, String btnText, String tooltipText, Runnable action) {
-            this.id = id;
-            this.bx = x;
-            this.by = y;
-            this.bw = w;
-            this.bh = h;
-            this.btnText = btnText;
-            this.tooltipText = tooltipText;
-            this.action = action;
-            this.negativeX = negativeX;
-        }
-
-        // Get x
-        public int gx(){
-            return negativeX ? (w - bx) : bx;
-        }
-
-        public void runIfClicked() {
-            if (isMouseOver())
-                action.run();
-        }
-
-        public boolean isMouseOver() {
-            return mouseInRect(gx(), by, bw, bh, lastMouseX, lastMouseY);
-        }
-
-        public void draw() {
-            drawRect(gx(), by, bw, bh,
-                    isMouseOver() ? hoverColor : idleColor);
-            if (!btnText.isEmpty())
-                drawText(btnText, gx() + bw / 2 - getStringWidth(btnText) / 2, by, textColor);
-        }
-
-        public void drawTooltips() {
-            if (!tooltipText.isEmpty() && isMouseOver())
-                drawTooltip(tooltipText);
-        }
-
-
-    }
-
     public void mouseReleased(int mouseX, int mouseY, int state) {
         dragging = false;
         resizing = false;
@@ -285,10 +230,10 @@ public class LiveWindow {
         if (!active)
             return;
         int padding = 3;
-        int x = lastMouseX - this.x + 1;
-        int y = lastMouseY - this.y - 12 - padding;
-        drawRect(x, y, getStringWidth(text) + padding * 2, 12 + padding - 1, getRGB(36, 36, 36));
-        drawText(text, x + padding, y + padding, 0xFFFFFF);
+        int tooltipX = lastMouseX - this.x + 1;
+        int tooltipY = lastMouseY - this.y - 12 - padding;
+        drawRect(tooltipX, tooltipY, getStringWidth(text) + padding * 2, 12 + padding - 1, getRGB(36, 36, 36));
+        drawText(text, tooltipX + padding, tooltipY + padding, 0xFFFFFF);
     }
 
     public void drawWindow(int bgColor, int fgColor) {

@@ -150,13 +150,13 @@ public class ChatWindow extends LiveWindow {
      * Initializes buttons.
      */
     public void initButtons() {
-        liveButtons.add(new LiveButton(0, 14, titlebarHeight + 3, 11, 11, true, "", "Add friend", () -> {
+        liveButtons.add(new LiveButton(this, 0, 14, titlebarHeight + 3, 11, 11, true, "", "Add friend", () -> {
             toggleFriend();
         }));
-        liveButtons.add(new LiveButton(1, 14, titlebarHeight + 3 + 13, 11, 11, true, "", "Block user", () -> {
+        liveButtons.add(new LiveButton(this, 1, 14, titlebarHeight + 3 + 13, 11, 11, true, "", "Block user", () -> {
             toggleBlock();
         }));
-        liveButtons.add(new LiveButton(2, 14, titlebarHeight + 3 + 26, 11, 11, true, "", "Custom color", () -> {
+        liveButtons.add(new LiveButton(this, 2, 14, titlebarHeight + 3 + 26, 11, 11, true, "", "Custom color", () -> {
             toggleColor();
         }));
     }
