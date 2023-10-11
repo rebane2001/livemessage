@@ -19,6 +19,8 @@ public class LoadingWindow extends LiveWindow {
     }
 
     public void drawWindow(int bgColor, int fgColor) {
+        super.drawWindow(bgColor, fgColor);
+
         int chatbg = 36;
         int textbg = 24;
 
