@@ -4,6 +4,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.toast.SystemToast;
+import net.minecraft.client.toast.ToastManager;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 public class LiveHud {
@@ -12,7 +13,10 @@ public class LiveHud {
         TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
         if (textRenderer.getWidth(message) > 138)
             message = textRenderer.trimToWidth(message, 138 - textRenderer.getWidth("...")) + "...";
-        MinecraftClient.getInstance().getToastManager().add(new SystemToast(SystemToast.Type.NARRATOR_TOGGLE, Text.of(title), Text.of(message)));
+        ToastManager toastManager = MinecraftClient.getInstance().getToastManager();
+        synchronized (toastManager) {
+            toastManager.add(new SystemToast(SystemToast.Type.NARRATOR_TOGGLE, Text.of(title), Text.of(message)));
+        }
     }
 
     public static void playNotificationSound(){

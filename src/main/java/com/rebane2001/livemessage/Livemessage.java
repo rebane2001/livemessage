@@ -1,6 +1,9 @@
 package com.rebane2001.livemessage;
 
+import com.rebane2001.livemessage.gui.LivemessageGui;
 import com.rebane2001.livemessage.util.ConfigUtil;
+import com.rebane2001.livemessage.util.LiveProfileCache;
+import com.rebane2001.livemessage.util.LivemessageUtil;
 import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
@@ -14,5 +17,9 @@ public class Livemessage implements ModInitializer {
 	public void onInitialize() {
 		LOGGER.info("Initializing LiveMessage...");
 		ConfigUtil.initFiles();
+		LivemessageGui.loadBuddiesSync();
+		LiveProfileCache.preloadProfiles();
+		// TODO: reimplement
+		// LivemessageUtil.loadPatterns();
 	}
 }

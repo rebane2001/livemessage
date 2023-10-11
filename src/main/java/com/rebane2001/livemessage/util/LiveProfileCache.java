@@ -22,8 +22,8 @@ import java.util.regex.Pattern;
 public class LiveProfileCache {
 
     public static Map<UUID, LiveProfile> cachedProfiles = new HashMap<>();
-    public static Map<UUID, LiveProfile> weakCachedProfiles = new HashMap<>();
     public static Map<String, UUID> cachedNames = new HashMap<>();
+    public static Map<String, UUID> weakCachedNames = new HashMap<>();
     public static Set<UUID> badUUIDs = new HashSet<>();
     public static Set<String> badNames = new HashSet<>();
 
@@ -68,7 +68,7 @@ public class LiveProfileCache {
 
 
     private static UUID pollUUID(String username) {
-        System.out.println("[Livemessage] Looking up: " + username);
+        Livemessage.LOGGER.info("Looking up: " + username);
         try {
             JsonObject object =
                     null;
@@ -97,35 +97,6 @@ public class LiveProfileCache {
         for (UUID uuid : savedUUIDs) {
             executor.submit(() -> getLiveprofileFromUUID(uuid,true));
         }
-
-
-        /*
-        ExecutorService fixedPool = Executors.newFixedThreadPool(8);
-
-
-        Runnable runnableTask = (UUID z) -> {
-            try {
-                System.out.println("Checking XXX");
-                LiveProfile x = getLiveprofileFromUUID(new UUID(123 ,123),false);
-                System.out.println("Got " + x.username);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        };
-
-        fixedPool.execute(runnableTask);*/
-    }
-
-    // TODO: Reimplement past names, but client-side
-    public static LiveProfile forceloadNameHistory(LiveProfile liveProfile) {
-        /*
-        if (cachedProfiles.get(liveProfile.uuid).pastNames != null)
-            return cachedProfiles.get(liveProfile.uuid);
-        liveProfile.pastNames = pollPastNames(liveProfile.uuid);
-        cachedProfiles.put(liveProfile.uuid, liveProfile);
-
-         */
-        return liveProfile;
     }
 
     private static UUID getUUIDFromTab(String username) {
@@ -158,6 +129,7 @@ public class LiveProfileCache {
             if (liveProfile.gameProfile != null) {
                 liveProfile.username = liveProfile.gameProfile.getName();
                 liveProfile.uuid = liveProfile.gameProfile.getId();
+                cachedNames.put(liveProfile.username.toLowerCase(Locale.ROOT), liveProfile.uuid);
                 liveProfile.weakCache = false;
             }
         }
@@ -174,29 +146,20 @@ public class LiveProfileCache {
         if (badUUIDs.contains(uuid))
             return null;
         ConfigUtil.ChatSettings chatSettings = ConfigUtil.getChatSettings(uuid);
-        LiveProfile liveProfile = new LiveProfile(uuid);
-        // TODO: Should any of this be moved into initialization?
-        if (weak && getUsernameFromTab(uuid) == null) {
-            if (chatSettings.lastName != null) {
-                liveProfile.weakCache = true;
-                liveProfile.username = chatSettings.lastName;
-            }
+        LiveProfile liveProfile = new LiveProfile(uuid, getUsernameFromTab(uuid));
+
+        if (weak && liveProfile.username == null && chatSettings.lastName != null) {
+            liveProfile.weakCache = true;
+            liveProfile.username = chatSettings.lastName;
+            weakCachedNames.put(liveProfile.username.toLowerCase(Locale.ROOT), uuid);
         }
+
         if (liveProfile.username == null) {
-            liveProfile.username = getUsernameFromTab(uuid);
-            if (liveProfile.username == null) {
-                loadGameProfile(liveProfile);
-                if (liveProfile.username == null)
-                    return banUUID(uuid);
-                // TODO: Reimplement name history
-                /*
-                liveProfile.pastNames = pollPastNames(uuid);
-                if (liveProfile.pastNames == null)
-                    return banUUID(uuid);
-                liveProfile.username = liveProfile.pastNames.get(0);
-                 */
-            }
+            loadGameProfile(liveProfile);
+            if (liveProfile.username == null)
+                return banUUID(uuid);
             liveProfile.weakCache = false;
+            // TODO: If name different from cached then update name history
             if (!liveProfile.username.equals(chatSettings.lastName)) {
                 // Cache username for the future
                 chatSettings.lastName = liveProfile.username;
@@ -204,8 +167,21 @@ public class LiveProfileCache {
             }
             cachedNames.put(liveProfile.username.toLowerCase(Locale.ROOT), uuid);
         }
+
         cachedProfiles.put(uuid, liveProfile);
         return liveProfile;
+    }
+
+    /**
+     * Quickly gets a UUID from a name, but might be outdated.
+     * Returns instantly, doesn't perform network requests or IO.
+     */
+    public static UUID quickUUIDFromName(String username) {
+        UUID uuid = getUUIDFromTab(username);
+        if (uuid != null) return uuid;
+        username = username.toLowerCase(Locale.ROOT);
+        uuid = cachedNames.getOrDefault(username, weakCachedNames.get(username));
+        return uuid;
     }
 
     public static LiveProfile getLiveprofileFromName(String username) {

@@ -63,6 +63,10 @@ public class LiveWindow {
 
     List<LiveButton> liveButtons = new ArrayList<>();
 
+    public void mouseReleased() {
+        mouseReleased(lastMouseX, lastMouseY, 0);
+    }
+
     public void mouseReleased(int mouseX, int mouseY, int state) {
         dragging = false;
         resizing = false;
@@ -156,7 +160,7 @@ public class LiveWindow {
 
     public void deactivateWindow() {
         active = false;
-        mouseReleased(lastMouseX, lastMouseY, 0);
+        mouseReleased();
     }
 
     public void preDrawWindow(DrawContext context) {

@@ -14,6 +14,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ConfigUtil {
     public static Path modFolder;
@@ -85,6 +87,7 @@ public class ConfigUtil {
     }
 
     public static void backupChatHistory(UUID uuid) {
+        // TODO: Deal with null byte files
         File chatHistoryFile = new File(getModPath("messages/" + uuid + ".jsonl"));
         File chatHistoryBackup = new File(getModPath("backups/" + uuid + ".jsonl"));
         if (!chatHistoryFile.exists()) return;
@@ -103,15 +106,22 @@ public class ConfigUtil {
         }
     }
 
-    public static void appendChatHistory(UUID uuid, String message, boolean sentByMe) {
-        backupChatHistory(uuid);
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(getModPath("messages/" + uuid + ".jsonl"), true))) {
-            Gson gson = new Gson();
-            ClientPlayerEntity player = MinecraftClient.getInstance().player;
-            bw.write(gson.toJson(new ChatWindow.ChatMessage(message, sentByMe, System.currentTimeMillis(), player != null ? player.getUuid() : null)));
-            bw.newLine();
-        } catch (Exception e) {
-            e.printStackTrace();
+    public static final Lock chatHistoryLock = new ReentrantLock();
+
+    public static void appendChatHistory(UUID uuid, String message, boolean sentByMe, long messageTime) {
+        try {
+            chatHistoryLock.lock();
+            backupChatHistory(uuid);
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(getModPath("messages/" + uuid + ".jsonl"), true))) {
+                Gson gson = new Gson();
+                ClientPlayerEntity player = MinecraftClient.getInstance().player;
+                bw.write(gson.toJson(new ChatWindow.ChatMessage(message, sentByMe, messageTime, player != null ? player.getUuid() : null)));
+                bw.newLine();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } finally {
+            chatHistoryLock.unlock();
         }
     }
 
@@ -120,6 +130,7 @@ public class ConfigUtil {
         public boolean isBlocked = false;
         public int customColor = 0;
         public String lastName;
+        // TODO: Namehistory, pdb
     }
 
     public static ChatSettings getChatSettings(UUID uuid){

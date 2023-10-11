@@ -1,6 +1,7 @@
 package com.rebane2001.livemessage.gui;
 
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.rebane2001.livemessage.Livemessage;
 import com.rebane2001.livemessage.LivemessageConfig;
 import com.rebane2001.livemessage.util.ConfigUtil;
 import com.rebane2001.livemessage.util.LiveProfileCache;
@@ -52,7 +53,14 @@ public class LivemessageGui extends Screen {
     /**
      * Loads users into respective lists.
      */
-    public static void loadBuddies() {
+    public static void loadBuddiesSync() {
+        ArrayList[] buddyLists = ConfigUtil.loadBuddies();
+        chats = buddyLists[0];
+        friends = buddyLists[1];
+        blocked = buddyLists[2];
+    }
+
+    public static void loadBuddiesAsync() {
         CompletableFuture
                 .supplyAsync(ConfigUtil::loadBuddies)
                 .thenAccept(buddyLists -> {
@@ -89,7 +97,8 @@ public class LivemessageGui extends Screen {
     public void init() {
         setScl();
 
-        loadBuddies();
+        // TODO: We might want to allow for some way of triggering this after loading the game, but not on every GUI open
+        // loadBuddies();
 
         if (liveWindows.isEmpty())
             liveWindows.add(new ManeWindow());
@@ -99,6 +108,8 @@ public class LivemessageGui extends Screen {
     public void close() {
         // TODO: ???
         // Keyboard.enableRepeatEvents(false);
+        liveWindows.get(liveWindows.size() - 1).mouseReleased();
+
         if (client != null)
             client.setScreen(parent);
     }
@@ -143,14 +154,16 @@ public class LivemessageGui extends Screen {
     private static void addChatWindow(ChatWindow chatWindow) {
         if (chatWindow.valid) {
             synchronized (liveWindows) {
-                liveWindows.add(chatWindow);
-                Optional<LiveWindow> loadingWindow = LivemessageGui.liveWindows.stream().filter(it -> it instanceof LoadingWindow && ((LoadingWindow)it).uuid.equals(chatWindow.liveProfile.uuid)).findFirst();
+                Optional<LiveWindow> loadingWindow = LivemessageGui.liveWindows.stream().filter(it -> it instanceof LoadingWindow && ((LoadingWindow) it).uuid.equals(chatWindow.liveProfile.uuid)).findFirst();
                 if (loadingWindow.isPresent()) {
                     chatWindow.x = loadingWindow.get().x;
                     chatWindow.y = loadingWindow.get().y;
                     chatWindow.animateInStart = loadingWindow.get().animateInStart;
                 }
-                LivemessageGui.liveWindows.removeIf(it -> it instanceof LoadingWindow && ((LoadingWindow)it).uuid.equals(chatWindow.liveProfile.uuid));
+                LivemessageGui.liveWindows.removeIf(it -> it instanceof LoadingWindow && ((LoadingWindow) it).uuid.equals(chatWindow.liveProfile.uuid));
+                if (LivemessageGui.liveWindows.size() > 0)
+                    LivemessageGui.liveWindows.get(LivemessageGui.liveWindows.size() - 1).deactivateWindow();
+                liveWindows.add(chatWindow);
             }
         } else {
             liveWindows.get(liveWindows.size() - 1).activateWindow();
@@ -213,50 +226,69 @@ public class LivemessageGui extends Screen {
     }
 
     public static boolean newMessage(String username, String message, boolean sentByMe) {
-        final LiveProfileCache.LiveProfile liveProfile = LiveProfileCache.getLiveprofileFromName(username);
-        if (liveProfile == null) {
-            return false;
-        }
-        final UUID uuid = liveProfile.uuid;
-        // TODO: QUICKCHECK for blocked users, then continue in a separate thread for no lagspikes
+        long messageTime = System.currentTimeMillis();
+        final UUID quickUUID = LiveProfileCache.quickUUIDFromName(username);
         boolean doHide = false;
-        if (uuid != null) {
-            // Write message to chat history jsonl
-            ConfigUtil.appendChatHistory(uuid, message, sentByMe);
-            if (!chats.contains(uuid))
-                loadBuddies();
-            if (!sentByMe) {
-                // Increase unread messages counter
-                unreadMessages.put(uuid, unreadMessages.getOrDefault(uuid, 0) + 1);
-                // If settings allow, show a toast notification
-                if ((!blocked.contains(uuid) || LivemessageConfig.notificationSettings.toastsFromBlocked) && ((friends.contains(uuid) && LivemessageConfig.notificationSettings.toastsFromFriends) || (!friends.contains(uuid) && chats.contains(uuid) && LivemessageConfig.notificationSettings.toastsFromChats)))
-                    LiveHud.addToast("DM from " + username, message);
-                // If settings allow, play a notification sound
-                if ((!blocked.contains(uuid) || LivemessageConfig.notificationSettings.soundsFromBlocked) && ((friends.contains(uuid) && LivemessageConfig.notificationSettings.soundsFromFriends) || (!friends.contains(uuid) && chats.contains(uuid) && LivemessageConfig.notificationSettings.soundsFromChats)))
-                    LiveHud.playNotificationSound();
-            } else {
-                if (LivemessageConfig.otherSettings.readOnReply)
-                    LivemessageGui.unreadMessages.put(uuid, 0);
-            }
-            // If settings define, hide DM messages from main chat
-            if ((blocked.contains(uuid) && LivemessageConfig.hideSettings.hideFromBlocked) || (friends.contains(uuid) && LivemessageConfig.hideSettings.hideFromFriends) || (chats.contains(uuid) && LivemessageConfig.hideSettings.hideFromChats))
-                doHide = true;
+        if (quickUUID != null) {
+            doHide = (LivemessageConfig.hideSettings.hideFromBlocked && blocked.contains(quickUUID)) ||
+                    (LivemessageConfig.hideSettings.hideFromFriends && friends.contains(quickUUID)) ||
+                    (LivemessageConfig.hideSettings.hideFromChats && !friends.contains(quickUUID) && !blocked.contains(quickUUID));
         }
-        // Send message to open window
-        // TODO: reimplement
-        /*
-        for (LiveWindow liveWindow : liveWindows) {
-            if (!(liveWindow instanceof ChatWindow))
-                continue;
-            ChatWindow chatWindow = (ChatWindow) liveWindow;
-            if (username.equals(chatWindow.liveProfile.username)) {
-                chatWindow.chatHistory.add(new ChatWindow.ChatMessage(message, sentByMe, System.currentTimeMillis()));
-                if (chatWindow.chatScrolledToBottom)
-                    chatWindow.chatScrollPosition += 1;
-                break;
-            }
-        }
-         */
+
+        CompletableFuture
+                .runAsync(() -> {
+                    final LiveProfileCache.LiveProfile liveProfile = LiveProfileCache.getLiveprofileFromName(username);
+                    if (liveProfile == null) {
+                        Livemessage.LOGGER.error("Couldn't process the message from " + username + ": Unable to get the LiveProfile");
+                        return;
+                    }
+                    final UUID uuid = liveProfile.uuid;
+                    if (uuid == null) {
+                        Livemessage.LOGGER.error("Couldn't process the message from " + username + ": UUID is null");
+                        return;
+                    }
+                    // Write message to chat history jsonl
+                    ConfigUtil.appendChatHistory(uuid, message, sentByMe, messageTime);
+                    if (!chats.contains(uuid))
+                        loadBuddiesAsync();
+                    if (!sentByMe) {
+                        // Increase unread messages counter
+                        unreadMessages.put(uuid, unreadMessages.getOrDefault(uuid, 0) + 1);
+
+                        // If settings allow, show a toast notification
+                        if (
+                                (!blocked.contains(uuid) || LivemessageConfig.notificationSettings.toastsFromBlocked) &&
+                                        (
+                                                (friends.contains(uuid) && LivemessageConfig.notificationSettings.toastsFromFriends) ||
+                                                        (!friends.contains(uuid) && !blocked.contains(uuid) && LivemessageConfig.notificationSettings.toastsFromChats)
+                                        )
+                        )
+                            LiveHud.addToast("DM from " + username, message);
+                        // If settings allow, play a notification sound
+                        if (
+                                (!blocked.contains(uuid) || LivemessageConfig.notificationSettings.soundsFromBlocked) &&
+                                        (
+                                                (friends.contains(uuid) && LivemessageConfig.notificationSettings.soundsFromFriends) ||
+                                                        (!friends.contains(uuid) && !blocked.contains(uuid) && LivemessageConfig.notificationSettings.soundsFromChats)
+                                        )
+                        )
+                            LiveHud.playNotificationSound();
+                    } else {
+                        if (LivemessageConfig.otherSettings.readOnReply)
+                            LivemessageGui.unreadMessages.put(uuid, 0);
+                    }
+
+                    // Send message to open window
+                    synchronized (liveWindows) {
+                        liveWindows.stream().filter(ChatWindow.class::isInstance).map(ChatWindow.class::cast).filter(it -> it.liveProfile.uuid == uuid).forEach(chatWindow -> {
+                            chatWindow.chatHistory.add(new ChatWindow.ChatMessage(message, sentByMe, messageTime));
+                            if (chatWindow.chatScrolledToBottom)
+                                chatWindow.chatScrollPosition += 1;
+                        });
+                    }
+                });
+
+
         return doHide;
     }
 

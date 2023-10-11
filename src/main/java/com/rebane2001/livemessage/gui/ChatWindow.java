@@ -1,5 +1,6 @@
 package com.rebane2001.livemessage.gui;
 
+import com.rebane2001.livemessage.Livemessage;
 import com.rebane2001.livemessage.util.ConfigUtil;
 import com.rebane2001.livemessage.util.LiveProfileCache;
 import com.rebane2001.livemessage.util.LiveProfileCache.LiveProfile;
@@ -98,7 +99,7 @@ public class ChatWindow extends LiveWindow {
      */
     public ChatWindow(LiveProfile liveProfile) {
         if (liveProfile == null) {
-            System.out.println("[Livemessage] Tried to open an invalid chat window - offline mode?");
+            Livemessage.LOGGER.error("Tried to open an invalid chat window - offline mode?");
             valid = false;
             return;
         }
@@ -150,13 +151,23 @@ public class ChatWindow extends LiveWindow {
     public void toggleFriend() {
         chatSettings.isFriend = !chatSettings.isFriend;
         ConfigUtil.saveChatSettings(liveProfile.uuid, chatSettings);
-        LivemessageGui.loadBuddies();
+        if (chatSettings.isFriend) {
+            LivemessageGui.friends.add(liveProfile.uuid);
+            Collections.sort(LivemessageGui.friends);
+        } else {
+            LivemessageGui.friends.removeIf(it -> it.equals(liveProfile.uuid));
+        }
     }
 
     public void toggleBlock() {
         chatSettings.isBlocked = !chatSettings.isBlocked;
         ConfigUtil.saveChatSettings(liveProfile.uuid, chatSettings);
-        LivemessageGui.loadBuddies();
+        if (chatSettings.isBlocked) {
+            LivemessageGui.blocked.add(liveProfile.uuid);
+            Collections.sort(LivemessageGui.blocked);
+        } else {
+            LivemessageGui.blocked.removeIf(it -> it.equals(liveProfile.uuid));
+        }
     }
 
     public void toggleColor() {
@@ -274,6 +285,9 @@ public class ChatWindow extends LiveWindow {
         DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
         DateFormat timeFormat = new SimpleDateFormat("<HH:mm> ");
         String lastDay = dateFormat.format(new Date(System.currentTimeMillis()));
+        int unreadMessageLocation = -1;
+        int unreadMessagesCount = LivemessageGui.unreadMessages.getOrDefault(liveProfile.uuid, 0);
+        unreadMessageLocation = chatHistory.size() - unreadMessagesCount;
         for (int i = chatScrollPosition; i < chatHistory.size(); i++) {
             ChatMessage chatMessage = chatHistory.get(i);
             boolean isTrimmed = false;
@@ -283,6 +297,10 @@ public class ChatWindow extends LiveWindow {
                 if (chatBoxY + 5 + 12 * drawHeight > h - 34) {
                     chatScrolledToBottom = false;
                     break;
+                }
+                if (i == unreadMessageLocation) {
+                    // TODO: Do we want this?
+                    // drawRect(chatBoxX + 3, chatBoxY + 5 + 12 * drawHeight - 3, w - 16, 1, primaryColor);
                 }
                 String thisDay = dateFormat.format(timestamp);
                 if (!thisDay.equals(lastDay)) {
@@ -426,7 +444,8 @@ public class ChatWindow extends LiveWindow {
         if (pastNamesB) {
             if (liveProfile.pastNames == null) {
                 drawRect(40, titlebarHeight + 3, longestPastName + 4, 12, getSingleRGB(128));
-                liveProfile = LiveProfileCache.forceloadNameHistory(liveProfile);
+                // TODO: replace with local name history
+                // liveProfile = LiveProfileCache.forceloadNameHistory(liveProfile);
             } else {
                 drawRect(40, titlebarHeight + 3, longestPastName + 4, 12 * liveProfile.pastNames.size(), fgColor);
                 int i = 0;

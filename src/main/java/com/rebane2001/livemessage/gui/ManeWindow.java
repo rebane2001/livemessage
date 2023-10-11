@@ -322,7 +322,7 @@ public class ManeWindow extends LiveWindow {
 
         generateBuddylist();
         scrollBarHeight = (buddyListEntries.size() < 2) ? 0 : (int) MathHelper.clamp(Math.floor((h - (buddyListY + 10 + footer)) / Math.max((buddyListEntries.size() - 1) / 10, 1)), 10, (h - (buddyListY + 10 + footer)) / 2);
-        if (active && mouseInRect(buddyListX, buddyListY, w - 10, h - (buddyListY + 10 + footer), lastMouseX, lastMouseY)) {
+        if (mouseInRect(buddyListX, buddyListY, w - 10, h - (buddyListY + 10 + footer), lastMouseX, lastMouseY)) {
             int i = (int) Math.floor((lastMouseY - buddyListY - this.y - 3) / 12f) + listScrollPosition;
             if (i < buddyListEntries.size() && i >= 0 && (i - listScrollPosition) * 12 <= h - (buddyListY + footer + 22)) {
                 BuddyListEntry buddyListEntry = buddyListEntries.get(i);

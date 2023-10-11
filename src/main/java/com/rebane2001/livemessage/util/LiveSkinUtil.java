@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.authlib.yggdrasil.ProfileResult;
+import com.rebane2001.livemessage.Livemessage;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.util.DefaultSkinHelper;
@@ -15,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import static com.mojang.authlib.minecraft.MinecraftProfileTexture.Type.*;
 
@@ -27,35 +29,39 @@ public class LiveSkinUtil {
     private SkinTextures.Model skinType;
     private GameProfile gameProfile;
 
-    public LiveSkinUtil(LiveProfileCache.LiveProfile liveProfile){
-        gameProfile = LiveProfileCache.loadGameProfile(liveProfile);
-        if (gameProfile == null)
-            gameProfile = new GameProfile(liveProfile.uuid, liveProfile.username != null ? liveProfile.username : "N/A");
+    public LiveSkinUtil(LiveProfileCache.LiveProfile liveProfile) {
+        gameProfile = new GameProfile(liveProfile.uuid, liveProfile.username != null ? liveProfile.username : "N/A");
+        CompletableFuture
+                .runAsync(() -> {
+                    GameProfile gameProfileReal = LiveProfileCache.loadGameProfile(liveProfile);
+                    if (gameProfileReal != null) {
+                        synchronized (this) {
+                            gameProfile = gameProfileReal;
+                            playerTexturesLoaded = false;
+                        }
+                    }
+                });
     }
 
-    public boolean hasLocationSkin()
-    {
+    public boolean hasLocationSkin() {
         return this.getLocationSkin() != null;
     }
 
-    public SkinTextures.Model getSkinType()
-    {
+    public SkinTextures.Model getSkinType() {
         return Optional.ofNullable(this.skinType).orElse(SkinTextures.Model.WIDE);
     }
 
-    public boolean customSkinLoaded(){
+    public boolean customSkinLoaded() {
         return this.playerTextures.get(SKIN) != null;
     }
 
-    public Identifier getLocationSkin()
-    {
+    public Identifier getLocationSkin() {
         this.loadPlayerTextures();
         return MoreObjects.firstNonNull(this.playerTextures.get(SKIN), DefaultSkinHelper.getSkinTextures(this.gameProfile.getId()).texture());
     }
 
     @Nullable
-    public Identifier getLocationCape()
-    {
+    public Identifier getLocationCape() {
         this.loadPlayerTextures();
         return this.playerTextures.get(CAPE);
     }
@@ -64,48 +70,22 @@ public class LiveSkinUtil {
      * Gets the special Elytra texture for the player.
      */
     @Nullable
-    public Identifier getLocationElytra()
-    {
+    public Identifier getLocationElytra() {
         this.loadPlayerTextures();
         return this.playerTextures.get(ELYTRA);
     }
 
-    protected void loadPlayerTextures()
-    {
-        synchronized (this)
-        {
-            if (!this.playerTexturesLoaded)
-            {
+    protected void loadPlayerTextures() {
+        synchronized (this) {
+            if (!this.playerTexturesLoaded) {
                 this.playerTexturesLoaded = true;
+                Livemessage.LOGGER.info("Loading da skin");
                 MinecraftClient.getInstance().getSkinProvider().fetchSkinTextures(this.gameProfile).thenAccept(skinTextures -> {
                     LiveSkinUtil.this.playerTextures.put(SKIN, skinTextures.texture());
                     LiveSkinUtil.this.playerTextures.put(CAPE, skinTextures.capeTexture());
                     LiveSkinUtil.this.playerTextures.put(ELYTRA, skinTextures.elytraTexture());
                     LiveSkinUtil.this.skinType = skinTextures.model();
                 });
-
-                // TODO: delete
-/*
-                Minecraft.getMinecraft().getSkinManager().loadProfileTextures(this.gameProfile, (SkinManager.SkinAvailableCallback) (typeIn, location, profileTexture) -> {
-                    switch (typeIn)
-                    {
-                        case SKIN:
-                            LiveSkinUtil.this.playerTextures.put(SKIN, location);
-                            LiveSkinUtil.this.skinType = profileTexture.getMetadata("model");
-
-                            if (LiveSkinUtil.this.skinType == null)
-                            {
-                                LiveSkinUtil.this.skinType = "default";
-                            }
-
-                            break;
-                        case CAPE:
-                            LiveSkinUtil.this.playerTextures.put(CAPE, location);
-                            break;
-                        case ELYTRA:
-                            LiveSkinUtil.this.playerTextures.put(ELYTRA, location);
-                    }
-                }, false); // The difference between this and NetworkPlayerInfo is that this here is false;*/
             }
         }
     }
