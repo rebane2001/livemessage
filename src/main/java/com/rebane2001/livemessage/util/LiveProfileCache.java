@@ -39,8 +39,6 @@ public class LiveProfileCache {
         public LiveProfile(UUID uuid) {
             this.uuid = uuid;
             this.pdbData = new PdbUtil.PdbData();
-            // TODO: Make this optional
-            PdbUtil.fetchData(this.pdbData, uuid);
         }
         public LiveProfile(UUID uuid, String username) {
             this(uuid);
@@ -154,7 +152,8 @@ public class LiveProfileCache {
             Livemessage.LOGGER.warn("Loading game profile...");
             long l = System.currentTimeMillis();
             ProfileResult profileResult = MinecraftClient.getInstance().getSessionService().fetchProfile(liveProfile.uuid, false);
-            liveProfile.gameProfile = profileResult.profile();
+            if (profileResult != null)
+                liveProfile.gameProfile = profileResult.profile();
             Livemessage.LOGGER.warn("Loaded game profile in " + (System.currentTimeMillis()-l) + "ms (null == " + (liveProfile.gameProfile == null) + ")");
             if (liveProfile.gameProfile != null) {
                 liveProfile.username = liveProfile.gameProfile.getName();
@@ -174,7 +173,7 @@ public class LiveProfileCache {
         }
         if (badUUIDs.contains(uuid))
             return null;
-        LivemessageUtil.ChatSettings chatSettings = LivemessageUtil.getChatSettings(uuid);
+        ConfigUtil.ChatSettings chatSettings = ConfigUtil.getChatSettings(uuid);
         LiveProfile liveProfile = new LiveProfile(uuid);
         // TODO: Should any of this be moved into initialization?
         if (weak && getUsernameFromTab(uuid) == null) {
@@ -201,7 +200,7 @@ public class LiveProfileCache {
             if (!liveProfile.username.equals(chatSettings.lastName)) {
                 // Cache username for the future
                 chatSettings.lastName = liveProfile.username;
-                LivemessageUtil.saveChatSettings(liveProfile.uuid, chatSettings);
+                ConfigUtil.saveChatSettings(liveProfile.uuid, chatSettings);
             }
             cachedNames.put(liveProfile.username.toLowerCase(Locale.ROOT), uuid);
         }

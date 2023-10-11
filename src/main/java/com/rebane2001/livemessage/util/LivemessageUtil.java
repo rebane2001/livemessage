@@ -34,13 +34,6 @@ public class LivemessageUtil {
             )
     );
 
-    public static class ChatSettings{
-        public boolean isFriend = false;
-        public boolean isBlocked = false;
-        public int customColor = 0;
-        public String lastName;
-    }
-
     // TODO: reimplement
     /**
      * Might not be the place for this method, but it works
@@ -112,12 +105,6 @@ public class LivemessageUtil {
     }
 
      */
-
-    // TODO: Remove temporary NOPs
-    public static ChatSettings getChatSettings(UUID uuid){
-        return new ChatSettings();
-    }
-    public static void saveChatSettings(UUID uuid, ChatSettings chatSettings){}
 
     public static JsonElement getResources(URL url, String request) throws IOException {
         return getResources(url, request, null);

@@ -1,5 +1,6 @@
 package com.rebane2001.livemessage.gui;
 
+import com.rebane2001.livemessage.util.ConfigUtil;
 import com.rebane2001.livemessage.util.LiveProfileCache.LiveProfile;
 import com.rebane2001.livemessage.util.LiveSkinUtil;
 import com.rebane2001.livemessage.util.LivemessageUtil;
@@ -23,15 +24,18 @@ public class LiveProfileHeader {
     LiveProfileHeader (LiveWindow window, LiveProfile liveProfile, boolean isManeWindow) {
         this.w = window;
         this.liveProfile = liveProfile;
-        this.liveSkinUtil = new LiveSkinUtil(liveProfile.uuid);
+        this.liveSkinUtil = new LiveSkinUtil(liveProfile);
         this.isManeWindow = isManeWindow;
+        // TODO: only if pdb enabled
+        if (!liveProfile.pdbData.fresh)
+            PdbUtil.fetchData(liveProfile.pdbData, liveProfile.uuid);
     }
 
     public void drawProfileHeader(int x, int y) {
         drawProfileHeader(x, y, null);
     }
 
-    public void drawProfileHeader(int x, int y, LivemessageUtil.ChatSettings chatSettings) {
+    public void drawProfileHeader(int x, int y, ConfigUtil.ChatSettings chatSettings) {
         boolean online =  LivemessageUtil.isPlayerOnline(liveProfile.uuid);
 
         String displayUsername = liveProfile.username;

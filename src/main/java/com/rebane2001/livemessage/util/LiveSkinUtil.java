@@ -27,12 +27,10 @@ public class LiveSkinUtil {
     private SkinTextures.Model skinType;
     private GameProfile gameProfile;
 
-    public LiveSkinUtil(UUID uuid){
-        // TODO: Error handling?
-        ProfileResult profileResult = MinecraftClient.getInstance().getSessionService().fetchProfile(uuid, false);
-        gameProfile = profileResult != null ? profileResult.profile() : new GameProfile(uuid, "N/A");
-        // TODO: Remove
-        // gameProfile = Minecraft.getMinecraft().getSessionService().fillProfileProperties(new GameProfile(uuid,null), false);
+    public LiveSkinUtil(LiveProfileCache.LiveProfile liveProfile){
+        gameProfile = LiveProfileCache.loadGameProfile(liveProfile);
+        if (gameProfile == null)
+            gameProfile = new GameProfile(liveProfile.uuid, liveProfile.username != null ? liveProfile.username : "N/A");
     }
 
     public boolean hasLocationSkin()

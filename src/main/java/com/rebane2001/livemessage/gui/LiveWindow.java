@@ -72,6 +72,8 @@ public class LiveWindow {
     public void mouseMove(int mouseX, int mouseY) {
         lastMouseX = mouseX;
         lastMouseY = mouseY;
+        // TODO: Fix the last 2 parameters
+        if (clicked) mouseClickMove(mouseX, mouseY, 1, 1);
     }
 
     public boolean mouseInRect(int x, int y, int w, int h, int mouseX, int mouseY) {
@@ -123,29 +125,12 @@ public class LiveWindow {
         return (mouseX > x && mouseX < x + w && mouseY > y && mouseY < y + h);
     }
 
-    public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
-    }
-
-    /*
-    public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
-        if (dragging) {
-            x = Math.max(0, mouseX - dragX);
-            x -= x % LivemessageGui.scl;
-            y = Math.max(0, mouseY - dragY);
-            y -= y % LivemessageGui.scl;
-        } else if (resizing) {
-            w = MathHelper.clamp(mouseX - dragX - x, minw, maxw);
-            w -= w % LivemessageGui.scl;
-            h = MathHelper.clamp(mouseY - dragY - y, minh, maxh);
-            h -= h % LivemessageGui.scl;
-        }
-    }
-     */
+    public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {}
 
     public void handleMouseDrag(){
         final int mouseX = (int) (getMouse().getX() / LivemessageConfig.guiSettings.guiScale);
         final int mouseY = (int) (getMouse().getY() / LivemessageConfig.guiSettings.guiScale);
-        // TODO: Do we want this here?
+        // This is a weird place to put it, but it works
         mouseMove(mouseX, mouseY);
         if (dragging || resizing){
             if (dragging) {

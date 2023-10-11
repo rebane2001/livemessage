@@ -2,6 +2,8 @@ package com.rebane2001.livemessage.gui;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.rebane2001.livemessage.LivemessageConfig;
+import com.rebane2001.livemessage.util.ConfigUtil;
+import com.rebane2001.livemessage.util.LiveProfileCache;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -12,6 +14,7 @@ import org.lwjgl.opengl.GL11;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class LivemessageGui extends Screen {
 
@@ -22,7 +25,6 @@ public class LivemessageGui extends Screen {
         this.parent = parent;
     }
 
-    public static boolean buddiesLoaded = false;
     public static List<UUID> friends = new ArrayList<>();
     public static List<UUID> chats = new ArrayList<>();
     public static List<UUID> blocked = new ArrayList<>();
@@ -34,6 +36,7 @@ public class LivemessageGui extends Screen {
     public static double scl = 1;
     public static int screenHeight = 1;
     public static int screenWidth = 1;
+    public static int loadingSomething = 0;
 
     // For handling buttons from LiveWindows
     // Unused right now
@@ -50,40 +53,7 @@ public class LivemessageGui extends Screen {
      * Loads users into respective lists.
      */
     public static void loadBuddies() {
-        // todo: reimplement
-        friends.clear();
-        chats.clear();
-        blocked.clear();
-        buddiesLoaded = true;
-
-        /*
-        // Read all config files
-        File folder = new File(String.valueOf(Livemessage.modFolder.resolve("settings/")));
-        File[] listOfFiles = folder.listFiles();
-        for (File file : listOfFiles) {
-            if (file.isFile()) {
-                UUID uuid = UUID.fromString(file.getName().substring(0, 36));
-                LivemessageUtil.ChatSettings chatSettings = LivemessageUtil.getChatSettings(uuid);
-                if (chatSettings.isFriend)
-                    friends.add(uuid);
-                if (chatSettings.isBlocked)
-                    blocked.add(uuid);
-            }
-        }
-        // Look at all message histories
-        folder = new File(String.valueOf(Livemessage.modFolder.resolve("messages/")));
-        listOfFiles = folder.listFiles();
-        for (File file : listOfFiles) {
-            if (file.isFile()) {
-                UUID uuid = UUID.fromString(file.getName().substring(0, 36));
-                chats.add(uuid);
-            }
-        }
-         */
-        // Sort lists for consistency (even tho by UUID)
-        Collections.sort(friends);
-        Collections.sort(chats);
-        Collections.sort(blocked);
+        ConfigUtil.loadBuddies(chats, friends, blocked);
     }
 
     /**
@@ -128,7 +98,6 @@ public class LivemessageGui extends Screen {
     }
 
     // Use this to open a new window or highlight existing one
-    // TODO: reimplement
     public static void openChatWindow(final UUID uuid) {
         if (uuid == null)
             return;
@@ -147,7 +116,20 @@ public class LivemessageGui extends Screen {
             }
         }
         // If existing window didn't exist, add a new one
-        LivemessageGui.addChatWindow(new ChatWindow(uuid));
+        loadingSomething++;
+        CompletableFuture
+                .runAsync(() -> {
+                    // Do this in the background so we less laggy :)
+                    try {
+                        LiveProfileCache.LiveProfile liveProfile = LiveProfileCache.getLiveprofileFromUUID(uuid, false);
+                        if (liveProfile != null)
+                            LiveProfileCache.loadGameProfile(liveProfile);
+                        LivemessageGui.addChatWindow(new ChatWindow(uuid));
+                    } finally {
+                        loadingSomething--;
+                    }
+                });
+
     }
 
     // Safe chatwindow adding
@@ -215,25 +197,16 @@ public class LivemessageGui extends Screen {
     }
 
     public static boolean newMessage(String username, String message, boolean sentByMe) {
-        // TODO: reimplement
-        // final UUID uuid = LiveProfileCache.getLiveprofileFromName(username).uuid;
-        final UUID uuid = MinecraftClient.getInstance().player.getUuid();
+        final LiveProfileCache.LiveProfile liveProfile = LiveProfileCache.getLiveprofileFromName(username);
+        if (liveProfile == null) {
+            return false;
+        }
+        final UUID uuid = liveProfile.uuid;
+        // TODO: QUICKCHECK for blocked users, then continue in a separate thread for no lagspikes
         boolean doHide = false;
         if (uuid != null) {
             // Write message to chat history jsonl
-            // TODO: reimplement
-            /*
-            try {
-                Gson gson = new Gson();
-                FileWriter fw = new FileWriter(String.valueOf(Livemessage.modFolder.resolve("messages/" + uuid.toString() + ".jsonl")), true);
-                BufferedWriter bw = new BufferedWriter(fw);
-                bw.write(gson.toJson(new ChatWindow.ChatMessage(message, sentByMe, System.currentTimeMillis(), Minecraft.getMinecraft().player.getUniqueID())));
-                bw.newLine();
-                bw.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-             */
+            ConfigUtil.appendChatHistory(uuid, message, sentByMe);
             if (!chats.contains(uuid))
                 loadBuddies();
             if (!sentByMe) {

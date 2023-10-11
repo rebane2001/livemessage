@@ -1,20 +1,15 @@
 package com.rebane2001.livemessage.gui;
 
-import com.google.gson.Gson;
-import com.rebane2001.livemessage.Livemessage;
+import com.rebane2001.livemessage.util.ConfigUtil;
 import com.rebane2001.livemessage.util.LiveProfileCache;
 import com.rebane2001.livemessage.util.LiveProfileCache.LiveProfile;
-import com.rebane2001.livemessage.util.LiveSkinUtil;
+
 import com.rebane2001.livemessage.util.LivemessageUtil;
 
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.math.MathHelper;
-import org.lwjgl.opengl.GL11;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -38,7 +33,7 @@ public class ChatWindow extends LiveWindow {
 
     // TODO: reimplement textfield
     //protected GuiTextField inputField;
-    public LivemessageUtil.ChatSettings chatSettings;
+    public ConfigUtil.ChatSettings chatSettings;
 
     final int chatBoxY = titlebarHeight + 44;
     final int chatBoxX = 5;
@@ -46,7 +41,6 @@ public class ChatWindow extends LiveWindow {
 
     List<ChatMessage> chatHistory = new ArrayList<>();
 
-    LiveSkinUtil liveSkinUtil;
     QuintAnimation hatFade = new QuintAnimation(300, 1f);
     QuintAnimation fullSkinAnim = new QuintAnimation(600, 0f);
 
@@ -83,7 +77,7 @@ public class ChatWindow extends LiveWindow {
             this.timestamp = timestamp;
         }
 
-        ChatMessage(String message, boolean sentByMe, long timestamp, UUID myUUID) {
+        public ChatMessage(String message, boolean sentByMe, long timestamp, @Nullable UUID myUUID) {
             this(message, sentByMe, timestamp);
             this.myUUID = myUUID;
         }
@@ -92,7 +86,7 @@ public class ChatWindow extends LiveWindow {
     //TODO: Implement offline-mode players
 
     /**
-     * Initialize ChatWindows with either the UUID or username of an user.
+     * Initialize ChatWindows with either the UUID or username of a user.
      */
     ChatWindow(UUID uuid) {
         this(LiveProfileCache.getLiveprofileFromUUID(uuid, false));
@@ -118,13 +112,11 @@ public class ChatWindow extends LiveWindow {
 
         liveProfileHeader = new LiveProfileHeader(this, liveProfile, false);
 
-        chatSettings = LivemessageUtil.getChatSettings(liveProfile.uuid);
+        chatSettings = ConfigUtil.getChatSettings(liveProfile.uuid);
         loadWindowColor();
-        loadChatHistory();
+        ConfigUtil.loadChatHistory(this.liveProfile.uuid, this.chatHistory);
 
         initButtons();
-
-        liveSkinUtil = new LiveSkinUtil(liveProfile.uuid);
 
         msgString = "/msg " + liveProfile.username + " ";
 
@@ -160,13 +152,13 @@ public class ChatWindow extends LiveWindow {
 
     public void toggleFriend() {
         chatSettings.isFriend = !chatSettings.isFriend;
-        LivemessageUtil.saveChatSettings(liveProfile.uuid, chatSettings);
+        ConfigUtil.saveChatSettings(liveProfile.uuid, chatSettings);
         LivemessageGui.loadBuddies();
     }
 
     public void toggleBlock() {
         chatSettings.isBlocked = !chatSettings.isBlocked;
-        LivemessageUtil.saveChatSettings(liveProfile.uuid, chatSettings);
+        ConfigUtil.saveChatSettings(liveProfile.uuid, chatSettings);
         LivemessageGui.loadBuddies();
     }
 
@@ -176,7 +168,7 @@ public class ChatWindow extends LiveWindow {
         } else {
             chatSettings.customColor = hslColor((float) Math.random(), (float) (0.6f + Math.random() * 0.15f), 0.5f);
         }
-        LivemessageUtil.saveChatSettings(liveProfile.uuid, chatSettings);
+        ConfigUtil.saveChatSettings(liveProfile.uuid, chatSettings);
         loadWindowColor();
     }
 
@@ -185,34 +177,6 @@ public class ChatWindow extends LiveWindow {
      */
     public void loadWindowColor() {
         primaryColor = GuiUtil.getWindowColor(liveProfile.uuid);
-    }
-
-    /**
-     * Loads chat history from disk.
-     */
-    // TODO: reimplement
-    public void loadChatHistory() {
-        /*
-        Gson gson = new Gson();
-        BufferedReader reader;
-        try {
-            reader = new BufferedReader(new FileReader(
-                    String.valueOf(Livemessage.modFolder.resolve("messages/" + liveProfile.uuid.toString() + ".jsonl"))));
-            String line = reader.readLine();
-            while (line != null) {
-                try {
-                    chatHistory.add(gson.fromJson(line, ChatMessage.class));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                line = reader.readLine();
-            }
-            reader.close();
-        } catch (IOException e) {
-            //TODO: Add better error handling
-            //e.printStackTrace();
-        }
-         */
     }
 
     public void keyTyped(char typedChar, int keyCode) {

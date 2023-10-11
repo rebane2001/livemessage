@@ -79,31 +79,6 @@ public class ManeWindow extends LiveWindow {
         }));
         liveButtons.add(new LiveButton(this,1, 14, titlebarHeight + 3 + 13, 11, 11, true, "", "Mark all as read", LivemessageGui::markAllAsRead));
     }
-
-    /*
-    private void drawProfilePic(int x, int y) {
-
-        boolean removeHat = (lastMouseX > this.x + x && lastMouseX < this.x + x + 32 && lastMouseY > this.y + y && lastMouseY < this.y + y + 32);
-        float progress = fullSkinAnim.animate(removeHat && clicked && !dragging && !resizing && !scrolling ? 1F : 0F);
-        float sizeFlt = (8 + (progress * 56))*4;
-        if (progress > 0)
-            drawRect(-this.x, -this.y, LivemessageGui.screenWidth, LivemessageGui.screenHeight, getRGBA(0, 0, 0, (int) (progress * 128f) + 1));
-        drawTextureTrans(
-                liveSkinUtil.getLocationSkin(),
-               x - (progress * 32),y - (progress * 32),
-                (32f - progress * 32f), (32f - progress * 32f),
-                sizeFlt, sizeFlt,
-                1
-        );
-        drawTextureTrans(
-                liveSkinUtil.getLocationSkin(),
-                x, y,
-                32 + (32 * 4), 32,
-                32, 32,
-                hatFade.animate(removeHat ? 0F : 1F)
-        );
-    }*/
-
     public void keyTyped(char typedChar, int keyCode) {
         // TODO: Reimplement
         /*
@@ -194,7 +169,7 @@ public class ManeWindow extends LiveWindow {
         try {
             // TODO: reimplement
             //return searchField.getText().trim().length() > 0 && !username.toLowerCase(Locale.ROOT).contains(searchField.getText().trim().toLowerCase(Locale.ROOT));
-            return true;
+            return false;
         } catch (Exception e){
             return false;
         }
@@ -302,15 +277,24 @@ public class ManeWindow extends LiveWindow {
         for (int i = listScrollPosition; i < buddyListEntries.size(); ++i) {
             if (lineHeight * 12 > h - (buddyListY + footer + 22))
                 break;
+
             BuddyListEntry buddyListEntry = buddyListEntries.get(i);
-            String buddyText = (buddyListEntry.uuid == null ? "\u00A7l" : ((buddyListEntry.online ? "   " : "   \u00A7o") + (LivemessageGui.blocked.contains(buddyListEntry.uuid) ? "\u00A7m" : ""))) + buddyListEntry.username;
+            String buddyText = (buddyListEntry.uuid == null ? "\u00A7l" : (buddyListEntry.online ? "   " : "   \u00A7o")) + buddyListEntry.username;
             drawText(buddyText, buddyListX + 5, buddyListY + 5 + 12 * lineHeight, getSingleRGB((buddyListEntry.online) ? 255 : 128));
+
+            // We cannot use the strikethrough text formatting any more because it renders over all the other windows for some reason
+            if (LivemessageGui.blocked.contains(buddyListEntry.uuid)) {
+                int offsetLength = getStringWidth("   ");
+                drawRect(buddyListX + 5 + offsetLength - 1, buddyListY + 5 + 12 * lineHeight + 4, getStringWidth(buddyText) - offsetLength + 1, 1, getSingleRGB((buddyListEntry.online) ? 255 : 128));
+            }
+
             if (buddyListEntry.uuid != null) {
                 int unreads = LivemessageGui.unreadMessages.getOrDefault(buddyListEntry.uuid, 0);
                 String unreadString = "(" + unreads + ")";
                 if (unreads > 0)
                     drawText(unreadString, buddyListX + 5 + getStringWidth(buddyText + " "), buddyListY + 5 + 12 * lineHeight, (LivemessageGui.blocked.contains(buddyListEntry.uuid)) ? getSingleRGB(64) : getRGB(255, 0, 0));
             }
+
             lineHeight++;
         }
     }
