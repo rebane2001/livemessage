@@ -47,7 +47,7 @@ public class ManeWindow extends LiveWindow {
         // TODO: Better handing of this
         if (player == null) return;
         liveProfile = new LiveProfile(player.getUuid(), player.getGameProfile().getName());
-        liveProfileHeader = new LiveProfileHeader(this, liveProfile);
+        liveProfileHeader = new LiveProfileHeader(this, liveProfile, true);
         closeButton = false;
 
         // TODO: reimplement

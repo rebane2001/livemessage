@@ -4,6 +4,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.yggdrasil.ProfileResult;
+import com.rebane2001.livemessage.Livemessage;
 import com.rebane2001.livemessage.gui.LivemessageGui;
 import com.rebane2001.livemessage.gui.ManeWindow;
 import net.minecraft.client.MinecraftClient;
@@ -32,6 +34,7 @@ public class LiveProfileCache {
         public ArrayList<String> pastNames;
         public boolean weakCache;
         public PdbUtil.PdbData pdbData;
+        public GameProfile gameProfile;
 
         public LiveProfile(UUID uuid) {
             this.uuid = uuid;
@@ -65,40 +68,6 @@ public class LiveProfileCache {
         return new UUID(bi1.longValue(), bi2.longValue());
     }
 
-    private static ArrayList<String> pollPastNames(UUID uuid) {
-        // TODO: Remove this LOL
-        if (uuid != UUID.randomUUID()) return null;
-        System.out.println("[Livemessage] Looking up: " + uuid.toString());
-        ArrayList<String> pastNames = new ArrayList<String>();
-        try {
-            JsonArray array =
-                    null;
-            // TODO: This endpoint no longer works
-            array = LivemessageUtil.getResources(
-                    new URL(
-                            "https://api.mojang.com/user/profiles/"
-                                    + uuid.toString()
-                                    + "/names"),
-                    "GET")
-                    .getAsJsonArray();
-
-            for (JsonElement e : array) {
-                JsonObject node = e.getAsJsonObject();
-                String name = node.get("name").getAsString();
-                long changedAt = node.has("changedToAt") ? node.get("changedToAt").getAsLong() : 0;
-                pastNames.add(0, name);
-            }
-            /*
-            for (String name : pastNames) {
-                longestPastName = Math.max(fontRenderer.getStringWidth(name), longestPastName);
-            }
-            */
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-        return pastNames;
-    }
 
     private static UUID pollUUID(String username) {
         System.out.println("[Livemessage] Looking up: " + username);
@@ -149,11 +118,15 @@ public class LiveProfileCache {
         fixedPool.execute(runnableTask);*/
     }
 
+    // TODO: Reimplement past names, but client-side
     public static LiveProfile forceloadNameHistory(LiveProfile liveProfile) {
+        /*
         if (cachedProfiles.get(liveProfile.uuid).pastNames != null)
             return cachedProfiles.get(liveProfile.uuid);
         liveProfile.pastNames = pollPastNames(liveProfile.uuid);
         cachedProfiles.put(liveProfile.uuid, liveProfile);
+
+         */
         return liveProfile;
     }
 
@@ -173,6 +146,23 @@ public class LiveProfileCache {
                 return playerListEntry.getProfile().getName();
         } catch (Exception ignored) {}
         return null;
+    }
+
+    // TODO: ratelimit for invalid profiles? (does minecraft itself implement this limit?)
+    public static GameProfile loadGameProfile(LiveProfile liveProfile) {
+        if (liveProfile.gameProfile == null) {
+            Livemessage.LOGGER.warn("Loading game profile...");
+            long l = System.currentTimeMillis();
+            ProfileResult profileResult = MinecraftClient.getInstance().getSessionService().fetchProfile(liveProfile.uuid, false);
+            liveProfile.gameProfile = profileResult.profile();
+            Livemessage.LOGGER.warn("Loaded game profile in " + (System.currentTimeMillis()-l) + "ms (null == " + (liveProfile.gameProfile == null) + ")");
+            if (liveProfile.gameProfile != null) {
+                liveProfile.username = liveProfile.gameProfile.getName();
+                liveProfile.uuid = liveProfile.gameProfile.getId();
+                liveProfile.weakCache = false;
+            }
+        }
+        return liveProfile.gameProfile;
     }
 
     // Weak means we can use the cached username saved on disk
@@ -196,10 +186,16 @@ public class LiveProfileCache {
         if (liveProfile.username == null) {
             liveProfile.username = getUsernameFromTab(uuid);
             if (liveProfile.username == null) {
+                loadGameProfile(liveProfile);
+                if (liveProfile.username == null)
+                    return banUUID(uuid);
+                // TODO: Reimplement name history
+                /*
                 liveProfile.pastNames = pollPastNames(uuid);
                 if (liveProfile.pastNames == null)
                     return banUUID(uuid);
                 liveProfile.username = liveProfile.pastNames.get(0);
+                 */
             }
             liveProfile.weakCache = false;
             if (!liveProfile.username.equals(chatSettings.lastName)) {

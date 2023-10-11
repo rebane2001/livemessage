@@ -250,6 +250,9 @@ public class LiveWindow {
         drawRectHalf(w - 6, h - 6, 6, 6, false, fgColor);
     }
 
+    public String trimStringToWidth(String text, int maxWidth) {
+        return textRenderer.trimToWidth(text, maxWidth);
+    }
     public int getStringWidth(String text) {
         return textRenderer.getWidth(text);
     }

@@ -6,15 +6,9 @@ import com.rebane2001.livemessage.util.LiveProfileCache;
 import com.rebane2001.livemessage.util.LiveProfileCache.LiveProfile;
 import com.rebane2001.livemessage.util.LiveSkinUtil;
 import com.rebane2001.livemessage.util.LivemessageUtil;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiTextField;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.network.play.client.CPacketChatMessage;
-import net.minecraft.util.ResourceLocation;
+
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.math.MathHelper;
-import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import java.io.BufferedReader;
@@ -42,7 +36,8 @@ public class ChatWindow extends LiveWindow {
     boolean scrolling = false;
     public boolean chatScrolledToBottom = true;
 
-    protected GuiTextField inputField;
+    // TODO: reimplement textfield
+    //protected GuiTextField inputField;
     public LivemessageUtil.ChatSettings chatSettings;
 
     final int chatBoxY = titlebarHeight + 44;
@@ -54,6 +49,8 @@ public class ChatWindow extends LiveWindow {
     LiveSkinUtil liveSkinUtil;
     QuintAnimation hatFade = new QuintAnimation(300, 1f);
     QuintAnimation fullSkinAnim = new QuintAnimation(600, 0f);
+
+    LiveProfileHeader liveProfileHeader;
 
     /**
      * (the pony race not the human race).
@@ -119,6 +116,8 @@ public class ChatWindow extends LiveWindow {
 
         this.liveProfile = liveProfile;
 
+        liveProfileHeader = new LiveProfileHeader(this, liveProfile, false);
+
         chatSettings = LivemessageUtil.getChatSettings(liveProfile.uuid);
         loadWindowColor();
         loadChatHistory();
@@ -129,6 +128,8 @@ public class ChatWindow extends LiveWindow {
 
         msgString = "/msg " + liveProfile.username + " ";
 
+        // TODO: reimplement textfield
+        /*
         // Initialize text box
         this.inputField = new GuiTextField(0, this.fontRenderer, 9, this.h - 16, this.w - 18, 12);
         this.inputField.setMaxStringLength(256 - msgString.length());
@@ -141,6 +142,7 @@ public class ChatWindow extends LiveWindow {
         // Hide text box cursor
         for (int j = 0; j < 6; j++)
             this.inputField.updateCursorCounter();
+         */
 
         chatScrollPosition = Math.max(chatHistory.size() - 6, 0);
         animateInStart = System.currentTimeMillis();
@@ -150,15 +152,9 @@ public class ChatWindow extends LiveWindow {
      * Initializes buttons.
      */
     public void initButtons() {
-        liveButtons.add(new LiveButton(this, 0, 14, titlebarHeight + 3, 11, 11, true, "", "Add friend", () -> {
-            toggleFriend();
-        }));
-        liveButtons.add(new LiveButton(this, 1, 14, titlebarHeight + 3 + 13, 11, 11, true, "", "Block user", () -> {
-            toggleBlock();
-        }));
-        liveButtons.add(new LiveButton(this, 2, 14, titlebarHeight + 3 + 26, 11, 11, true, "", "Custom color", () -> {
-            toggleColor();
-        }));
+        liveButtons.add(new LiveButton(this, 0, 14, titlebarHeight + 3, 11, 11, true, "", "Add friend", this::toggleFriend));
+        liveButtons.add(new LiveButton(this, 1, 14, titlebarHeight + 3 + 13, 11, 11, true, "", "Block user", this::toggleBlock));
+        liveButtons.add(new LiveButton(this, 2, 14, titlebarHeight + 3 + 26, 11, 11, true, "", "Custom color", this::toggleColor));
     }
 
 
@@ -194,7 +190,9 @@ public class ChatWindow extends LiveWindow {
     /**
      * Loads chat history from disk.
      */
+    // TODO: reimplement
     public void loadChatHistory() {
+        /*
         Gson gson = new Gson();
         BufferedReader reader;
         try {
@@ -214,10 +212,13 @@ public class ChatWindow extends LiveWindow {
             //TODO: Add better error handling
             //e.printStackTrace();
         }
+         */
     }
 
     public void keyTyped(char typedChar, int keyCode) {
         markAsRead();
+        // TODO: reimplement
+        /*
         if (keyCode != Keyboard.KEY_RETURN && keyCode != Keyboard.KEY_NUMPADENTER) {
             if (keyCode == Keyboard.KEY_UP) {
                 //this.getSentHistory(-1);
@@ -228,22 +229,27 @@ public class ChatWindow extends LiveWindow {
             } else if (keyCode == Keyboard.KEY_NEXT) {
                 chatScrollPosition = MathHelper.clamp(chatScrollPosition + 10, 0, Math.max(chatHistory.size() - 1, 0));
             } else {
-                this.inputField.textboxKeyTyped(typedChar, keyCode);
+                // TODO: reimplement textfield
+                // this.inputField.textboxKeyTyped(typedChar, keyCode);
             }
         } else {
-            String s = this.inputField.getText().trim();
+            // TODO: reimplement textfield
+            String s = "placeholder text"; // this.inputField.getText().trim();
             if (!s.isEmpty()) {
                 CPacketChatMessage packet = new CPacketChatMessage(msgString + s);
                 Minecraft.getMinecraft().getConnection().sendPacket(packet);
-                this.inputField.setText("");
+                // TODO: reimplement textfield
+                // this.inputField.setText("");
             }
         }
+
+         */
         super.keyTyped(typedChar, keyCode);
     }
 
     public void mouseWheel(int mWheelState) {
         markAsRead();
-        chatScrollPosition += (mWheelState < 0 ? 1 : -1) * (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) ? 10 : 1);
+        chatScrollPosition += (mWheelState < 0 ? 1 : -1) * (Screen.hasShiftDown() ? 10 : 1);
         chatScrollPosition = MathHelper.clamp(chatScrollPosition, 0, Math.max(chatHistory.size() - 1, 0));
         super.mouseWheel(mWheelState);
     }
@@ -275,7 +281,7 @@ public class ChatWindow extends LiveWindow {
             scrolling = true;
             dragY = mouseY - (this.y + chatBoxY + (h - (chatBoxY + 10 + chatBoxSize + scrollBarHeight)) * chatScrollPosition / (chatHistory.size() - 1));
         }
-        longestPastName = Math.max(fontRenderer.getStringWidth(liveProfile.username), longestPastName);
+        longestPastName = Math.max(getStringWidth(liveProfile.username), longestPastName);
         if (mouseX > x + 40 && mouseX < x + 40 + longestPastName + 4 && mouseY > y + titlebarHeight + 4 && mouseY < y + titlebarHeight + 4 + 12) {
             pastNamesB = true;
             return;
@@ -297,8 +303,8 @@ public class ChatWindow extends LiveWindow {
      * Draws the text part of the chat history.
      */
     private void drawChatHistory(int chatBoxX, int chatBoxY, int chatColorMe, int chatColorOther) {
-        if (chatHistory.size() == 0) {
-            fontRenderer.drawString("You're chatting with " + liveProfile.username, chatBoxX + 4, chatBoxY + 5, getSingleRGB(96));
+        if (chatHistory.isEmpty()) {
+            drawText("You're chatting with " + liveProfile.username, chatBoxX + 4, chatBoxY + 5, getSingleRGB(96));
             chatScrolledToBottom = false;
             return;
         }
@@ -320,15 +326,15 @@ public class ChatWindow extends LiveWindow {
                 String thisDay = dateFormat.format(timestamp);
                 if (!thisDay.equals(lastDay)) {
                     lastDay = thisDay;
-                    fontRenderer.drawString(lastDay, chatBoxX + 4, chatBoxY + 5 + 12 * drawHeight, getSingleRGB(64));
+                    drawText(lastDay, chatBoxX + 4, chatBoxY + 5 + 12 * drawHeight, getSingleRGB(64));
                     drawHeight++;
                     continue;
                 }
                 if (!isTrimmed)
                     message = timeFormat.format(timestamp) + message;
-                int maxWidth = w - (chatBoxX * 2 + 8 + (isTrimmed ? fontRenderer.getStringWidth("<00:00> ") : 0) + scrollBarWidth - 5);
-                String trimmed = fontRenderer.trimStringToWidth(message, maxWidth);
-                fontRenderer.drawString(trimmed, chatBoxX + 4 + (isTrimmed ? fontRenderer.getStringWidth("<00:00> ") : 0), chatBoxY + 5 + 12 * drawHeight, chatMessage.sentByMe ? chatColorMe : chatColorOther);
+                int maxWidth = w - (chatBoxX * 2 + 8 + (isTrimmed ? getStringWidth("<00:00> ") : 0) + scrollBarWidth - 5);
+                String trimmed = trimStringToWidth(message, maxWidth);
+                drawText(trimmed, chatBoxX + 4 + (isTrimmed ? getStringWidth("<00:00> ") : 0), chatBoxY + 5 + 12 * drawHeight, chatMessage.sentByMe ? chatColorMe : chatColorOther);
 
                 drawHeight++;
                 if (message.equals(trimmed))
@@ -346,7 +352,9 @@ public class ChatWindow extends LiveWindow {
     /**
      * Draws profile pic and determines race (the pony race not the human race).
      */
+    // TODO: Replace with LiveProfileHeader
     private void drawProfilePic(int x, int y) {
+        /*
         GlStateManager.enableAlpha();
         GlStateManager.enableBlend();
         GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
@@ -381,36 +389,28 @@ public class ChatWindow extends LiveWindow {
         Gui.drawScaledCustomSizeModalRect(Math.round(x - (progress * 32)), Math.round(y - (progress * 32)), 8f - progress * 8f, 8f - progress * 8f, sizeInt, sizeInt, sizeInt * 4, sizeInt * 4, 64.0F, 64.0F);
         GlStateManager.color(1.0F, 1.0F, 1.0F, hatFade.animate(removeHat ? 0F : 1F));
         Gui.drawScaledCustomSizeModalRect(x, y, 40.0F, (float) 8, 8, 8, 32, 32, 64.0F, 64.0F);
+
+         */
     }
 
     /**
      * Mane drawing bit.
      */
     public void drawWindow(int bgColor, int fgColor) {
-        boolean online = LivemessageUtil.checkOnlineStatus(liveProfile.uuid);
+        boolean online = LivemessageUtil.isPlayerOnline(liveProfile.uuid);
         title = "[DM] " + liveProfile.username;
         int unreads = LivemessageGui.unreadMessages.getOrDefault(liveProfile.uuid, 0);
         if (unreads > 0)
             title += " \u00A7l(" + unreads + ")";
         scrollBarHeight = (chatHistory.size() < 2) ? 0 : (int) MathHelper.clamp(Math.floor((h - (chatBoxY + 10 + chatBoxSize)) / Math.max((chatHistory.size() - 1) / 10, 1)), 10, (h - (chatBoxY + 10 + chatBoxSize)) / 2);
         super.drawWindow(bgColor, fgColor);
-        // Profile pic
-        drawRect(3, titlebarHeight + 3, 36, 36, (online) ? getRGB(60, 148, 100) : getSingleRGB(128));
-        if (lastMouseX > x + 40 && lastMouseX < x + 40 + fontRenderer.getStringWidth(liveProfile.username) + 4 && lastMouseY > y + titlebarHeight + 3 && lastMouseY < y + titlebarHeight + 4 + 12)
-            drawRect(40, titlebarHeight + 3, fontRenderer.getStringWidth(liveProfile.username) + 4, 12, getSingleRGB(64));
-        String displayUsername = liveProfile.username;
-        if (chatSettings.isFriend)
-            displayUsername += " (friend)";
-        if (chatSettings.isBlocked)
-            displayUsername += " (blocked)";
-        fontRenderer.drawString(displayUsername, 42, titlebarHeight + 5, getSingleRGB(255));
-        fontRenderer.drawString(liveProfile.uuid.toString(), 42, titlebarHeight + 5 + 11, getSingleRGB(128));
-        fontRenderer.drawString((online) ? "online" : "offline", 42, titlebarHeight + 5 + 21, getSingleRGB(128));
 
         // Buttons
         liveButtons.forEach(LiveButton::draw);
 
         // Button textures
+        // TODO: Fix button textures
+        /*
         TextureManager textureManager = Minecraft.getMinecraft().getTextureManager();
         textureManager.bindTexture(new ResourceLocation(Livemessage.MOD_ID + ":" + "icons.png"));
         GlStateManager.color(0.5f, 0.5f, 0.5f);
@@ -424,6 +424,8 @@ public class ChatWindow extends LiveWindow {
             Gui.drawModalRectWithCustomSizedTexture(w - 13, titlebarHeight + 4 + 13, 9, 0, 9, 9, 45, 9);
         if (chatSettings.customColor > 0)
             Gui.drawModalRectWithCustomSizedTexture(w - 13, titlebarHeight + 4 + 26, 18, 0, 9, 9, 45, 9);
+
+         */
 
         int chatbg = 36;
         int textbg = 24;
@@ -441,14 +443,23 @@ public class ChatWindow extends LiveWindow {
                     (scrolling) ? getSingleRGB(128) : (mouseInRect(chatBoxX + w - 10 - scrollBarWidth, chatBoxY, scrollBarWidth, h - (chatBoxY + 10 + chatBoxSize), lastMouseX, lastMouseY)) ? getSingleRGB(96) : getSingleRGB(64)
             );
 
+        // TODO: reimplement textfield
+        /*
         this.inputField.setTextColor(getSingleRGB((active) ? 255 : 128));
         this.inputField.x = 8;
         this.inputField.y = this.h - chatBoxSize - 2;
         this.inputField.width = this.w - 18;
         this.inputField.drawTextBox();
 
+         */
+
         drawChatHistory(chatBoxX, chatBoxY, getSingleRGB(255), fgColor);
-        drawProfilePic(5, titlebarHeight + 5);
+
+        // Profile pic
+        if (lastMouseX > x + 40 && lastMouseX < x + 40 + getStringWidth(liveProfile.username) + 4 && lastMouseY > y + titlebarHeight + 3 && lastMouseY < y + titlebarHeight + 4 + 12)
+            drawRect(40, titlebarHeight + 3, getStringWidth(liveProfile.username) + 3, 12, getSingleRGB(64));
+        liveProfileHeader.drawProfileHeader(5, titlebarHeight + 5, chatSettings);
+
 
         // Namehistory
         if (pastNamesB) {
@@ -461,7 +472,7 @@ public class ChatWindow extends LiveWindow {
                 for (String name : liveProfile.pastNames) {
                     if (lastMouseX > x + 40 && lastMouseX < x + 40 + longestPastName + 4 && lastMouseY > y + titlebarHeight + 3 + 12 * i && lastMouseY < y + titlebarHeight + 4 + 12 + 12 * i)
                         drawRect(40, titlebarHeight + 3 + 12 * i, longestPastName + 4, 12, getRGBA(255, 255, 255, 64));
-                    fontRenderer.drawString(name, 42, titlebarHeight + 5 + 12 * i, getSingleRGB(255));
+                    drawText(name, 42, titlebarHeight + 5 + 12 * i, getSingleRGB(255));
                     i++;
                 }
             }

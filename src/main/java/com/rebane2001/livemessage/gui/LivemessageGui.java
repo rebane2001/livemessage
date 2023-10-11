@@ -132,14 +132,13 @@ public class LivemessageGui extends Screen {
     public static void openChatWindow(final UUID uuid) {
         if (uuid == null)
             return;
-        /*
-        liveWindows.get(liveWindows.size() - 1).deactivateWindow();
+        if (!liveWindows.isEmpty())
+            liveWindows.get(liveWindows.size() - 1).deactivateWindow();
         // Look for existing window
         for (LiveWindow liveWindow : LivemessageGui.liveWindows) {
-            if (!(liveWindow instanceof ChatWindow)) {
+            if (!(liveWindow instanceof final ChatWindow chatWindow)) {
                 continue;
             }
-            final ChatWindow chatWindow = (ChatWindow) liveWindow;
             if (chatWindow.liveProfile.uuid.equals(uuid)) {
                 chatWindow.activateWindow();
                 LivemessageGui.liveWindows.removeIf(it -> it == chatWindow);
@@ -149,12 +148,9 @@ public class LivemessageGui extends Screen {
         }
         // If existing window didn't exist, add a new one
         LivemessageGui.addChatWindow(new ChatWindow(uuid));
-         */
     }
 
     // Safe chatwindow adding
-    // TODO: reimplement
-    /*
     private static void addChatWindow(ChatWindow chatWindow) {
         if (chatWindow.valid) {
             liveWindows.add(chatWindow);
@@ -162,7 +158,6 @@ public class LivemessageGui extends Screen {
             liveWindows.get(liveWindows.size() - 1).activateWindow();
         }
     }
-     */
 
     // TODO: reimplement
     /*

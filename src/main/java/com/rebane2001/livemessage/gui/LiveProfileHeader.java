@@ -4,6 +4,7 @@ import com.rebane2001.livemessage.util.LiveProfileCache.LiveProfile;
 import com.rebane2001.livemessage.util.LiveSkinUtil;
 import com.rebane2001.livemessage.util.LivemessageUtil;
 import com.rebane2001.livemessage.util.PdbUtil;
+import net.minecraft.client.gui.screen.Screen;
 
 
 import static com.rebane2001.livemessage.gui.GuiUtil.*;
@@ -17,19 +18,42 @@ public class LiveProfileHeader {
     LiveProfile liveProfile;
     LiveWindow w;
 
-    LiveProfileHeader (LiveWindow window, LiveProfile liveProfile) {
+    boolean isManeWindow;
+
+    LiveProfileHeader (LiveWindow window, LiveProfile liveProfile, boolean isManeWindow) {
         this.w = window;
         this.liveProfile = liveProfile;
         this.liveSkinUtil = new LiveSkinUtil(liveProfile.uuid);
+        this.isManeWindow = isManeWindow;
     }
 
     public void drawProfileHeader(int x, int y) {
+        drawProfileHeader(x, y, null);
+    }
+
+    public void drawProfileHeader(int x, int y, LivemessageUtil.ChatSettings chatSettings) {
         boolean online =  LivemessageUtil.isPlayerOnline(liveProfile.uuid);
+
+        String displayUsername = liveProfile.username;
+        String displayExtra = "";
+
         // TODO: only if pdb enabled and make it work nicer and only if pronouns exist and only if there is room to show them
         if (liveProfile.pdbData.pronoun != null)
-            w.drawText(" (" + PdbUtil.getPronounText(liveProfile.pdbData.pronoun) + ")",  x + w.getStringWidth(liveProfile.username) + 42 - 5, y, getSingleRGB(128));
+           displayExtra += " (" + (isManeWindow ? liveProfile.pdbData.pronoun : PdbUtil.getPronounText(liveProfile.pdbData.pronoun)) + ")";
+        if (chatSettings != null) {
+            if (chatSettings.isFriend)
+                displayExtra += " (friend)";
+            if (chatSettings.isBlocked)
+                displayExtra += " (blocked)";
+        }
+
         w.drawText(liveProfile.username, x + 42 - 5, y, getSingleRGB(255));
-        w.drawText((online) ? "online" : "offline", x + 42 - 5, y + 11, getSingleRGB(128));
+        if (!isManeWindow || w.getStringWidth(displayUsername + displayExtra) + x < w.w - 13)
+            w.drawText(displayExtra, x + w.getStringWidth(displayUsername) + 42 - 5, y, getSingleRGB(128));
+        if (!isManeWindow)
+            w.drawText(liveProfile.uuid.toString(), x + 42 - 5, y + 11, getSingleRGB(128));
+        w.drawText((online) ? "online" : "offline", x + 42 - 5, y + (isManeWindow ? 11 : 21), getSingleRGB(128));
+
         drawStatus(x - 2, y - 2, online, liveProfile.pdbData.decoration);
         drawProfilePic(x, y, liveProfile.pdbData.decoration);
     }

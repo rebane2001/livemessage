@@ -53,6 +53,7 @@ public class PdbUtil {
         CompletableFuture
                 .runAsync(() -> {
                     try {
+                        // TODO: Remove this log msgs, maybe implement client-side ratelimit
                         Livemessage.LOGGER.warn("Looking up pronouns!");
                         JsonElement jsonElement = LivemessageUtil.getResources(new URL("https://pronoundb.org/api/v2/lookup?platform=minecraft&ids=" + uuid.toString()), "GET");
                         pdbData.decoration = null;
