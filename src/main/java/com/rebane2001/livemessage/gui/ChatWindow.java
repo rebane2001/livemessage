@@ -8,6 +8,8 @@ import com.rebane2001.livemessage.util.LiveProfileCache.LiveProfile;
 import com.rebane2001.livemessage.util.LivemessageUtil;
 
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,8 +34,7 @@ public class ChatWindow extends LiveWindow {
     boolean scrolling = false;
     public boolean chatScrolledToBottom = true;
 
-    // TODO: reimplement textfield
-    //protected GuiTextField inputField;
+    protected TextFieldWidget inputField;
     public ConfigUtil.ChatSettings chatSettings;
 
     final static int chatBoxY = titlebarHeight + 44;
@@ -118,21 +119,13 @@ public class ChatWindow extends LiveWindow {
 
         msgString = "/msg " + liveProfile.username + " ";
 
-        // TODO: reimplement textfield
-        /*
-        // Initialize text box
-        this.inputField = new GuiTextField(0, this.fontRenderer, 9, this.h - 16, this.w - 18, 12);
-        this.inputField.setMaxStringLength(256 - msgString.length());
-        this.inputField.setEnableBackgroundDrawing(false);
+        this.inputField = new TextFieldWidget(this.textRenderer, 9, this.h - 16, this.w - 18, 12, Text.of(""));
+        // TODO: Has this limit changed?
+        this.inputField.setMaxLength(256 - msgString.length());
+        this.inputField.setDrawsBackground(false);
         this.inputField.setFocused(true);
         this.inputField.setText("");
-        this.inputField.setCanLoseFocus(false);
-        this.inputField.setTextColor(getSingleRGB(255));
-
-        // Hide text box cursor
-        for (int j = 0; j < 6; j++)
-            this.inputField.updateCursorCounter();
-         */
+        this.inputField.setEditableColor(getSingleRGB(255));
 
         chatScrollPosition = Math.max(chatHistory.size() - 6, 0);
         animateInStart = System.currentTimeMillis();
@@ -187,8 +180,9 @@ public class ChatWindow extends LiveWindow {
         primaryColor = GuiUtil.getWindowColor(liveProfile.uuid);
     }
 
-    public void keyTyped(char typedChar, int keyCode) {
+    public void keyPressed(int keyCode, int scanCode, int modifiers) {
         markAsRead();
+        inputField.keyPressed(keyCode, scanCode, modifiers);
         // TODO: reimplement
         /*
         if (keyCode != Keyboard.KEY_RETURN && keyCode != Keyboard.KEY_NUMPADENTER) {
@@ -216,7 +210,12 @@ public class ChatWindow extends LiveWindow {
         }
 
          */
-        super.keyTyped(typedChar, keyCode);
+        super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    public void charTyped(char chr, int modifiers) {
+        inputField.charTyped(chr, modifiers);
+        super.charTyped(chr, modifiers);
     }
 
     public void mouseWheel(int mWheelState) {
@@ -413,8 +412,10 @@ public class ChatWindow extends LiveWindow {
         drawRect(chatBoxX - 1, chatBoxY - 1, w - 10 + 2, h - (chatBoxY + 10 + chatBoxSize) + 2, getSingleRGB(64));
         drawRect(chatBoxX, chatBoxY, w - 10, h - (chatBoxY + 10 + chatBoxSize), getSingleRGB(chatbg));
         // Message box
-        drawRect(chatBoxX - 1, chatBoxY - 1 + h - (chatBoxY + 5 + chatBoxSize), w - 10 + 2, chatBoxSize + 2, getSingleRGB(64));
-        drawRect(chatBoxX, chatBoxY + h - (chatBoxY + 5 + chatBoxSize), w - 10, chatBoxSize, getSingleRGB(textbg));
+        boolean messageWrittenButOffline = this.inputField.getText().length() > 0 && !online;
+        // TODO: Tooltip text to explain offline state
+        drawRect(chatBoxX - 1, chatBoxY - 1 + h - (chatBoxY + 5 + chatBoxSize), w - 10 + 2, chatBoxSize + 2, messageWrittenButOffline ? getRGB(128, 64, 64) : getSingleRGB(64));
+        drawRect(chatBoxX, chatBoxY + h - (chatBoxY + 5 + chatBoxSize), w - 10, chatBoxSize, messageWrittenButOffline ? getRGB(textbg * 2, textbg, textbg) : getSingleRGB(textbg));
 
         //scrollbar
         if (chatHistory.size() > 1)
@@ -422,15 +423,13 @@ public class ChatWindow extends LiveWindow {
                     (scrolling) ? getSingleRGB(128) : (mouseInRect(chatBoxX + w - 10 - scrollBarWidth, chatBoxY, scrollBarWidth, h - (chatBoxY + 10 + chatBoxSize), lastMouseX, lastMouseY)) ? getSingleRGB(96) : getSingleRGB(64)
             );
 
-        // TODO: reimplement textfield
-        /*
-        this.inputField.setTextColor(getSingleRGB((active) ? 255 : 128));
-        this.inputField.x = 8;
-        this.inputField.y = this.h - chatBoxSize - 2;
-        this.inputField.width = this.w - 18;
-        this.inputField.drawTextBox();
-
-         */
+        this.inputField.setEditableColor(getSingleRGB((active) ? 255 : 128));
+        this.inputField.setX(8);
+        this.inputField.setY(this.h - chatBoxSize - 2);
+        this.inputField.setWidth(this.w - 18);
+        this.inputField.active = active;
+        this.inputField.setFocused(active);
+        this.inputField.render(drawContext, lastMouseX, lastMouseY, 0);
 
         drawChatHistory(chatBoxX, chatBoxY, getSingleRGB(255), fgColor);
 

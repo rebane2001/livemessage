@@ -105,7 +105,6 @@ public class GuiUtil {
             hue += 0.1;
         return hue;
     }
-
     public static Mouse getMouse() {
         return MinecraftClient.getInstance().mouse;
     }

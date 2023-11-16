@@ -1,26 +1,24 @@
 package com.rebane2001.livemessage.gui;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.rebane2001.livemessage.Livemessage;
 import com.rebane2001.livemessage.LivemessageConfig;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.Mouse;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.render.*;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.MathHelper;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.rebane2001.livemessage.gui.GuiUtil.*;
-import static com.rebane2001.livemessage.gui.LivemessageGui.scl;
+import static com.rebane2001.livemessage.gui.LivemessageGui.scaleFactor;
 import static net.minecraft.client.gui.screen.Screen.hasShiftDown;
 
 public class LiveWindow {
@@ -46,7 +44,7 @@ public class LiveWindow {
     public boolean clicked = false;
     public boolean dragging = false;
     public boolean resizing = false;
-    public boolean closeButton = true;
+    public boolean allowClose = true;
     public int primaryColor = 0;
 
     boolean animateIn = true;
@@ -81,10 +79,11 @@ public class LiveWindow {
     }
 
     public boolean mouseInRect(int x, int y, int w, int h, int mouseX, int mouseY) {
-        return (mouseX > this.x + x && mouseX < this.x + x + w && mouseY > this.y + y && mouseY < this.y + y + h);
+        return (mouseX >= this.x + x && mouseX < this.x + x + w && mouseY >= this.y + y && mouseY < this.y + y + h);
     }
 
-    public void keyTyped(char typedChar, int keyCode) {
+    public void keyPressed(int keyCode, int scanCode, int modifiers) {
+        Livemessage.LOGGER.info("keyPressed: " + keyCode + ", " + scanCode + ", " + modifiers);
         if (keyCode == GLFW.GLFW_KEY_TAB && LivemessageGui.liveWindows.size() > 1) {
             if (hasShiftDown()) {
                 LiveWindow tempWindow = LivemessageGui.liveWindows.get(0);
@@ -98,18 +97,31 @@ public class LiveWindow {
             }
             deactivateWindow();
         }
+        if ((keyCode == GLFW.GLFW_KEY_W || keyCode == GLFW.GLFW_KEY_Q) && Screen.hasControlDown()) {
+            closeWindow();
+        }
+    }
+
+    public void charTyped(char chr, int modifiers) {
+        // TODO: Temporary, remove later
+        Livemessage.LOGGER.info("charTyped: " + chr + ", " + modifiers);
+    }
+
+    public void closeWindow() {
+        if (!allowClose) return;
+        if (LivemessageGui.liveWindows.size() > 1) {
+            LivemessageGui.liveWindows.get(LivemessageGui.liveWindows.size() - 2).activateWindow();
+            LivemessageGui.liveWindows.removeIf(it -> it == this);
+        } else {
+            Livemessage.LOGGER.warn("Cannot close window since none would be left");
+        }
     }
 
     public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
         clicked = true;
         // Close button
-        if (closeButton && mouseX > x + w - 13 && mouseX < x + w - 2 && mouseY > y + 3 && mouseY < y + 14) {
-            if (LivemessageGui.liveWindows.size() > 1) {
-                LivemessageGui.liveWindows.get(LivemessageGui.liveWindows.size() - 2).activateWindow();
-                LivemessageGui.liveWindows.removeIf(it -> it == this);
-            } else {
-                Livemessage.LOGGER.warn("Cannot close window since none would be left");
-            }
+        if (allowClose && mouseX > x + w - 13 && mouseX < x + w - 2 && mouseY > y + 3 && mouseY < y + 14) {
+            closeWindow();
         }
         // Dragging/resizing
         if (mouseX > x && mouseX < x + w && mouseY > y && mouseY < y + 20) {
@@ -132,21 +144,23 @@ public class LiveWindow {
     public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {}
 
     public void handleMouseDrag(){
-        final int mouseX = (int) (getMouse().getX() / LivemessageConfig.guiSettings.guiScale);
-        final int mouseY = (int) (getMouse().getY() / LivemessageConfig.guiSettings.guiScale);
+        double guiScale = LivemessageConfig.guiSettings.guiScale;
+        guiScale = guiScale == 0 ? LivemessageGui.gameScale : guiScale;
+        final int mouseX = (int) (getMouse().getX() / guiScale);
+        final int mouseY = (int) (getMouse().getY() / guiScale);
         // This is a weird place to put it, but it works
         mouseMove(mouseX, mouseY);
         if (dragging || resizing){
             if (dragging) {
                 x = Math.max(0, mouseX - dragX);
-                x -= x % scl;
+                x -= x % scaleFactor;
                 y = Math.max(0, mouseY - dragY);
-                y -= y % scl;
+                y -= y % scaleFactor;
             } else if (resizing) {
                 w = MathHelper.clamp(mouseX - dragX - x, minw, maxw);
-                w -= w % scl;
+                w -= w % scaleFactor;
                 h = MathHelper.clamp(mouseY - dragY - y, minh, maxh);
-                h -= h % scl;
+                h -= h % scaleFactor;
             }
         }
     }
@@ -233,7 +247,7 @@ public class LiveWindow {
         drawRect(0, 0, w, titlebarHeight, fgColor);
         drawText(title, 5, 5, 0xFFFFFF);
         // Close button
-        if (closeButton)
+        if (allowClose)
             drawRect(w - 13, 3, 11, 11, bgColor);
         // Resize corner
         drawRectHalf(w - 6, h - 6, 6, 6, false, fgColor);

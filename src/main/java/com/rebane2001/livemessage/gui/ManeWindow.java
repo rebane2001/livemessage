@@ -7,15 +7,16 @@ import com.rebane2001.livemessage.util.LiveProfileCache.LiveProfile;
 import com.rebane2001.livemessage.util.LiveSkinUtil;
 import com.rebane2001.livemessage.util.LivemessageUtil;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.PlayerListEntry;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
+import org.lwjgl.glfw.GLFW;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
 
 import static com.rebane2001.livemessage.gui.GuiUtil.*;
 import static net.minecraft.client.gui.screen.Screen.hasShiftDown;
@@ -32,8 +33,7 @@ public class ManeWindow extends LiveWindow {
     int listScrollPosition = 0;
     boolean scrolling = false;
 
-    // TODO: Reimplement
-    // protected static GuiTextField searchField;
+    protected TextFieldWidget searchField;
 
     public static List<BuddyListEntry> buddyListEntries = new ArrayList<>();
 
@@ -48,24 +48,16 @@ public class ManeWindow extends LiveWindow {
         if (player == null) return;
         liveProfile = new LiveProfile(player.getUuid(), player.getGameProfile().getName());
         liveProfileHeader = new LiveProfileHeader(this, liveProfile, true);
-        closeButton = false;
+        allowClose = false;
 
-        // TODO: reimplement
         // Initialize search box
-        /*
-        this.searchField = new GuiTextField(0, this.fontRenderer, 9, this.h - 16, this.w - 18, 12);
-        this.searchField.setMaxStringLength(16);
-        this.searchField.setEnableBackgroundDrawing(false);
+        this.searchField = new TextFieldWidget(this.textRenderer, 9, this.h - 16, this.w - 18, 12, Text.of(""));
+        this.searchField.setMaxLength(16);
+        this.searchField.setDrawsBackground(false);
         this.searchField.setFocused(true);
         this.searchField.setText("");
-        this.searchField.setCanLoseFocus(false);
-        this.searchField.setTextColor(getSingleRGB(255));
+        this.searchField.setEditableColor(getSingleRGB(255));
 
-
-        // Hide text box cursor
-        for (int j = 0; j < 6; j++)
-            this.searchField.updateCursorCounter();
-        */
         initButtons();
     }
 
@@ -79,18 +71,35 @@ public class ManeWindow extends LiveWindow {
         }));
         liveButtons.add(new LiveButton(this,1, 14, titlebarHeight + 3 + 13, 11, 11, true, "", "Mark all as read", LivemessageGui::markAllAsRead));
     }
-    public void keyTyped(char typedChar, int keyCode) {
-        // TODO: Reimplement
-        /*
-        if (keyCode == Keyboard.KEY_PRIOR) {
-            listScrollPosition = MathHelper.clamp(listScrollPosition - 10, 0, Math.max(buddyListEntries.size() - 1, 0));
-        } else if (keyCode == Keyboard.KEY_NEXT) {
-            listScrollPosition = MathHelper.clamp(listScrollPosition + 10, 0, Math.max(buddyListEntries.size() - 1, 0));
-        } else {
-            this.searchField.textboxKeyTyped(typedChar, keyCode);
+
+    // searchField.setFocused(active);
+
+    public void scrollBuddyList(int amount) {
+        listScrollPosition = MathHelper.clamp(listScrollPosition + amount, 0, Math.max(buddyListEntries.size() - 1, 0));
+    }
+
+    public void openFirstBuddyEntry() {
+        buddyListEntries.stream()
+                .filter(it -> it.uuid != null)
+                .findFirst()
+                .ifPresent(buddyListEntry -> LivemessageGui.openChatWindow(buddyListEntry.uuid));
+    }
+
+    public void keyPressed(int keyCode, int scanCode, int modifiers) {
+        switch (keyCode) {
+            case GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> openFirstBuddyEntry();
+            case GLFW.GLFW_KEY_PAGE_UP -> scrollBuddyList(-10);
+            case GLFW.GLFW_KEY_PAGE_DOWN -> scrollBuddyList(10);
+            case GLFW.GLFW_KEY_UP -> scrollBuddyList(Screen.hasControlDown() ? -10 : -1);
+            case GLFW.GLFW_KEY_DOWN -> scrollBuddyList(Screen.hasControlDown() ? 10 : 1);
+            default -> searchField.keyPressed(keyCode, scanCode, modifiers);
         }
-        super.keyTyped(typedChar, keyCode);
-         */
+        super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    public void charTyped(char chr, int modifiers) {
+        searchField.charTyped(chr, modifiers);
+        super.charTyped(chr, modifiers);
     }
 
     public void mouseReleased(int mouseX, int mouseY, int state) {
@@ -98,6 +107,7 @@ public class ManeWindow extends LiveWindow {
         super.mouseReleased(mouseX, mouseY, state);
     }
 
+    // TODO: Add back
     public void mouseWheel(int mWheelState) {
         listScrollPosition += (mWheelState < 0 ? 1 : -1) * (hasShiftDown() ? 10 : 1);
         listScrollPosition = MathHelper.clamp(listScrollPosition, 0, Math.max(buddyListEntries.size() - 1, 0));
@@ -165,17 +175,15 @@ public class ManeWindow extends LiveWindow {
         return true;
     }
 
-    private static boolean searchFilter(String username){
+    private boolean searchFilter(String username){
         try {
-            // TODO: reimplement
-            //return searchField.getText().trim().length() > 0 && !username.toLowerCase(Locale.ROOT).contains(searchField.getText().trim().toLowerCase(Locale.ROOT));
-            return false;
+            return searchField.getText().trim().length() > 0 && !username.toLowerCase(Locale.ROOT).contains(searchField.getText().trim().toLowerCase(Locale.ROOT));
         } catch (Exception e){
             return false;
         }
     }
 
-    public static void generateBuddylist() {
+    public void generateBuddylist() {
         buddyListEntries.clear();
         MinecraftClient mc = MinecraftClient.getInstance();
 
@@ -340,22 +348,19 @@ public class ManeWindow extends LiveWindow {
         drawRect(5 - 1, this.h - footer - 5 - 1, this.w - 10 + 2, footer + 2, getSingleRGB(64));
         drawRect(5, this.h - footer - 5, this.w - 10, footer, getSingleRGB(24));
 
-        // TODO: Reimplement
-        /*
-        this.searchField.setTextColor(getSingleRGB((active) ? 255 : 128));
-        this.searchField.x = 8;
-        this.searchField.y = this.h - footer - 2;
-        this.searchField.width = this.w - 18;
-        this.searchField.drawTextBox();
+        searchField.setEditableColor(getSingleRGB((active) ? 255 : 128));
+        searchField.setX(8);
+        searchField.setY(this.h - footer - 2);
+        searchField.setWidth(this.w - 18);
+        if (active && searchField.getText().length() > 0) {
+            searchField.render(drawContext, lastMouseX, lastMouseY, 0);
+        } else {
+            drawText(searchField.getText(), searchField.getX(), searchField.getY(), getSingleRGB(128));
+        }
 
-        if (this.searchField.getText().trim().length() == 0)
+        if (searchField.getText().trim().length() == 0)
             drawText("Search...", 8, this.h - footer - 2, getSingleRGB(64));
-         */
 
-        // drawText(liveProfile.username, 42, titlebarHeight + 5, getSingleRGB(255));
-        // drawText("online", 42, titlebarHeight + 5 + 11, getSingleRGB(128));
-        // drawRect(3, titlebarHeight + 3, 36, 36, getRGB(60, 148, 100));
-        // drawProfilePic(5, titlebarHeight + 5);
         liveProfileHeader.drawProfileHeader(5, titlebarHeight + 5);
 
         // Tooltips

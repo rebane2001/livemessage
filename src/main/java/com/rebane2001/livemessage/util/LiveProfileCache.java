@@ -120,6 +120,7 @@ public class LiveProfileCache {
     // TODO: ratelimit for invalid profiles? (does minecraft itself implement this limit?)
     public static GameProfile loadGameProfile(LiveProfile liveProfile) {
         if (liveProfile.gameProfile == null) {
+            // TODO: Remove these logs
             Livemessage.LOGGER.warn("Loading game profile...");
             long l = System.currentTimeMillis();
             ProfileResult profileResult = MinecraftClient.getInstance().getSessionService().fetchProfile(liveProfile.uuid, false);

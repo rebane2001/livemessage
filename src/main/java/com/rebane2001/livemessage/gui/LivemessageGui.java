@@ -1,6 +1,5 @@
 package com.rebane2001.livemessage.gui;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.rebane2001.livemessage.Livemessage;
 import com.rebane2001.livemessage.LivemessageConfig;
 import com.rebane2001.livemessage.util.ConfigUtil;
@@ -8,11 +7,9 @@ import com.rebane2001.livemessage.util.LiveProfileCache;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.util.Window;
 import net.minecraft.text.Text;
-import org.lwjgl.opengl.GL11;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -34,7 +31,8 @@ public class LivemessageGui extends Screen {
     public final static List<LiveWindow> liveWindows = new ArrayList<>();
 
     public static double sclOrig = 1;
-    public static double scl = 1;
+    public static double scaleFactor = 1;
+    public static double gameScale = 1;
     public static int screenHeight = 1;
     public static int screenWidth = 1;
     public static int loadingSomething = 0;
@@ -81,16 +79,13 @@ public class LivemessageGui extends Screen {
         unreadMessages.clear();
     }
 
-    public void setScl() {
-        // TODO: Reimplement
-        /*
-        final ScaledResolution scaledresolution = new ScaledResolution(this.mc);
-        scl = scaledresolution.getScaleFactor() / (float)LivemessageConfig.guiSettings.guiScale;
-
-        screenHeight = (int) (scaledresolution.getScaledHeight_double() * scl);
-        screenWidth = (int) (scaledresolution.getScaledWidth_double() * scl);
-
-         */
+    public static void setScl() {
+        Window gameWindow = MinecraftClient.getInstance().getWindow();
+        gameScale = gameWindow.getScaleFactor();
+        int guiScale = LivemessageConfig.guiSettings.guiScale;
+        scaleFactor = guiScale == 0 ? 1 : (gameScale / guiScale);
+        screenHeight = (int) (gameWindow.getScaledHeight() * scaleFactor);
+        screenWidth = (int) (gameWindow.getScaledWidth() * scaleFactor);
     }
 
     @Override
@@ -99,6 +94,8 @@ public class LivemessageGui extends Screen {
 
         // TODO: We might want to allow for some way of triggering this after loading the game, but not on every GUI open
         // loadBuddies();
+
+        setScl();
 
         if (liveWindows.isEmpty())
             liveWindows.add(new ManeWindow());
@@ -189,7 +186,7 @@ public class LivemessageGui extends Screen {
     public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
         for (int i = liveWindows.size() - 1; i >= 0; i--) {
             LiveWindow liveWindow = liveWindows.get(i);
-            if (liveWindow.mouseInWindow((int) (mouseX * scl), (int) (mouseY * scl))) {
+            if (liveWindow.mouseInWindow((int) (mouseX * scaleFactor), (int) (mouseY * scaleFactor))) {
                 if (i != liveWindows.size() - 1) {
                     liveWindows.get(liveWindows.size() - 1).deactivateWindow();
                     liveWindow.activateWindow();
@@ -199,13 +196,13 @@ public class LivemessageGui extends Screen {
                 break;
             }
         }
-        liveWindows.get(liveWindows.size() - 1).mouseClicked((int) (mouseX * scl), (int) (mouseY * scl), mouseButton);
+        liveWindows.get(liveWindows.size() - 1).mouseClicked((int) (mouseX * scaleFactor), (int) (mouseY * scaleFactor), mouseButton);
         return super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        liveWindows.get(liveWindows.size() - 1).mouseReleased((int) (mouseX * scl), (int) (mouseY * scl), button);
+        liveWindows.get(liveWindows.size() - 1).mouseReleased((int) (mouseX * scaleFactor), (int) (mouseY * scaleFactor), button);
         return super.mouseReleased(mouseX, mouseY, button);
     }
 
@@ -215,9 +212,14 @@ public class LivemessageGui extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        // TODO: reimplement
-        // liveWindows.get(liveWindows.size() - 1).keyTyped(typedChar, keyCode);
+        liveWindows.get(liveWindows.size() - 1).keyPressed(keyCode, scanCode, modifiers);
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public boolean charTyped(char chr, int modifiers) {
+        liveWindows.get(liveWindows.size() - 1).charTyped(chr, modifiers);
+        return super.charTyped(chr, modifiers);
     }
 
     @Override
@@ -301,12 +303,9 @@ public class LivemessageGui extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
-        setScl();
         // TODO: Make configurable and optional (-1 == scale with GUI?)
-        scl = MinecraftClient.getInstance().getWindow().getScaleFactor();
-        screenHeight = (int) (context.getScaledWindowHeight() * scl);
-        screenWidth = (int) (context.getScaledWindowWidth() * scl);
-        float reverseGuiScale = (float) (1f / scl * 1);
+        setScl();
+        float reverseGuiScale = (float) (1f / scaleFactor * 1);
         context.getMatrices().push();
         context.getMatrices().scale(reverseGuiScale, reverseGuiScale, reverseGuiScale);
         synchronized (liveWindows) {

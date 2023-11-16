@@ -76,17 +76,15 @@ public class LiveSkinUtil {
     }
 
     protected void loadPlayerTextures() {
+        if (this.playerTexturesLoaded) return;
         synchronized (this) {
-            if (!this.playerTexturesLoaded) {
-                this.playerTexturesLoaded = true;
-                Livemessage.LOGGER.info("Loading da skin");
-                MinecraftClient.getInstance().getSkinProvider().fetchSkinTextures(this.gameProfile).thenAccept(skinTextures -> {
-                    LiveSkinUtil.this.playerTextures.put(SKIN, skinTextures.texture());
-                    LiveSkinUtil.this.playerTextures.put(CAPE, skinTextures.capeTexture());
-                    LiveSkinUtil.this.playerTextures.put(ELYTRA, skinTextures.elytraTexture());
-                    LiveSkinUtil.this.skinType = skinTextures.model();
-                });
-            }
+            this.playerTexturesLoaded = true;
+            MinecraftClient.getInstance().getSkinProvider().fetchSkinTextures(this.gameProfile).thenAccept(skinTextures -> {
+                LiveSkinUtil.this.playerTextures.put(SKIN, skinTextures.texture());
+                LiveSkinUtil.this.playerTextures.put(CAPE, skinTextures.capeTexture());
+                LiveSkinUtil.this.playerTextures.put(ELYTRA, skinTextures.elytraTexture());
+                LiveSkinUtil.this.skinType = skinTextures.model();
+            });
         }
     }
 }
