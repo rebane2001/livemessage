@@ -83,6 +83,7 @@ public class ManeWindow extends LiveWindow {
                 .filter(it -> it.uuid != null)
                 .findFirst()
                 .ifPresent(buddyListEntry -> LivemessageGui.openChatWindow(buddyListEntry.uuid));
+        searchField.setText("");
     }
 
     public void keyPressed(int keyCode, int scanCode, int modifiers) {
@@ -99,6 +100,7 @@ public class ManeWindow extends LiveWindow {
 
     public void charTyped(char chr, int modifiers) {
         searchField.charTyped(chr, modifiers);
+        scrollBuddyList(-0xFFFFFF);
         super.charTyped(chr, modifiers);
     }
 
@@ -116,10 +118,10 @@ public class ManeWindow extends LiveWindow {
 
     public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
         if (scrolling) {
-            int totalPixels = h - (buddyListY + 10 + footer);
+            int totalPixels = h - (buddyListY + 10 + footer + scrollBarHeight);
             float oneLine = totalPixels * 1f / (buddyListEntries.size() - 1);
             float onePixel = 1f / oneLine;
-            listScrollPosition = (int) MathHelper.clamp((mouseY - (dragY + buddyListY + this.y)) * onePixel, 0, buddyListEntries.size() - 1);
+            listScrollPosition = MathHelper.clamp(Math.round((mouseY - (dragY + buddyListY + this.y)) * onePixel), 0, buddyListEntries.size() - 1);
         }
         super.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
     }
@@ -358,7 +360,7 @@ public class ManeWindow extends LiveWindow {
             drawText(searchField.getText(), searchField.getX(), searchField.getY(), getSingleRGB(128));
         }
 
-        if (searchField.getText().trim().length() == 0)
+        if (searchField.getText().length() == 0)
             drawText("Search...", 8, this.h - footer - 2, getSingleRGB(64));
 
         liveProfileHeader.drawProfileHeader(5, titlebarHeight + 5);

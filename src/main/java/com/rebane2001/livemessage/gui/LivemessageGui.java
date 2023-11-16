@@ -95,8 +95,6 @@ public class LivemessageGui extends Screen {
         // TODO: We might want to allow for some way of triggering this after loading the game, but not on every GUI open
         // loadBuddies();
 
-        setScl();
-
         if (liveWindows.isEmpty())
             liveWindows.add(new ManeWindow());
     }

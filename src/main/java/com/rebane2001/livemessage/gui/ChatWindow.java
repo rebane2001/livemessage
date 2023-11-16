@@ -235,7 +235,7 @@ public class ChatWindow extends LiveWindow {
             int totalPixels = (h - (chatBoxY + 10 + chatBoxSize + scrollBarHeight));
             float oneLine = totalPixels * 1f / (chatHistory.size() - 1);
             float onePixel = 1f / oneLine;
-            chatScrollPosition = (int) MathHelper.clamp((mouseY - (dragY + chatBoxY + this.y)) * onePixel, 0, chatHistory.size() - 1);
+            chatScrollPosition = MathHelper.clamp(Math.round((mouseY - (dragY + chatBoxY + this.y)) * onePixel), 0, chatHistory.size() - 1);
         }
         super.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
     }
