@@ -150,18 +150,16 @@ public class LiveWindow {
         final int mouseY = (int) (getMouse().getY() / guiScale);
         // This is a weird place to put it, but it works
         mouseMove(mouseX, mouseY);
-        if (dragging || resizing){
-            if (dragging) {
-                x = Math.max(0, mouseX - dragX);
-                x -= x % scaleFactor;
-                y = Math.max(0, mouseY - dragY);
-                y -= y % scaleFactor;
-            } else if (resizing) {
-                w = MathHelper.clamp(mouseX - dragX - x, minw, maxw);
-                w -= w % scaleFactor;
-                h = MathHelper.clamp(mouseY - dragY - y, minh, maxh);
-                h -= h % scaleFactor;
-            }
+        if (dragging) {
+            x = Math.max(0, mouseX - dragX);
+            x -= x % scaleFactor;
+            y = Math.max(0, mouseY - dragY);
+            y -= y % scaleFactor;
+        } else if (resizing) {
+            w = MathHelper.clamp(mouseX - dragX - x, minw, maxw);
+            w -= w % scaleFactor;
+            h = MathHelper.clamp(mouseY - dragY - y, minh, maxh);
+            h -= h % scaleFactor;
         }
     }
 
